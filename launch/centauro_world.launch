@@ -1,0 +1,15 @@
+<launch>
+
+  <!-- Load the URDF/SRDF into the ROS Parameter Server -->
+  <param name="urdf_path"
+         value="$(find centauro_urdf)/urdf/centauro.urdf"/>
+  <param name="srdf_path"
+        value="$(find centauro_srdf)/srdf/centauro.srdf"/>
+
+  <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
+
+  <node pkg="cartesian_walk" name="cartesian_walk" type="cartesian_walk_node" output="screen"/>
+
+
+</launch>
+
