@@ -45,38 +45,38 @@ int main(int argc, char **argv)
     model->setJointPosition(qhome);
     model->update();
 
-    XBot::Cartesian::Utils::RobotStatePublisher rspub (model);
+    // XBot::Cartesian::Utils::RobotStatePublisher rspub (model);
 
 
-    // before constructing the problem description, let us build a
-    // context object which stores some information, such as
-    // the control period
-    const double dt = 0.01;
-    auto ctx = std::make_shared<XBot::Cartesian::Context>(
-                std::make_shared<XBot::Cartesian::Parameters>(dt),
-                model
-            );
+    // // before constructing the problem description, let us build a
+    // // context object which stores some information, such as
+    // // the control period
+    // const double dt = 0.01;
+    // auto ctx = std::make_shared<XBot::Cartesian::Context>(
+    //             std::make_shared<XBot::Cartesian::Parameters>(dt),
+    //             model
+    //         );
 
-    // load the ik problem given a yaml file
-     std::string problem_description_string;
-    nodeHandle.getParam("problem_description", problem_description_string);
+    // // load the ik problem given a yaml file
+    //  std::string problem_description_string;
+    // nodeHandle.getParam("problem_description", problem_description_string);
 
-    auto ik_pb_yaml = YAML::Load(problem_description_string);
-    XBot::Cartesian::ProblemDescription ik_pb(ik_pb_yaml, ctx);
+    // auto ik_pb_yaml = YAML::Load(problem_description_string);
+    // XBot::Cartesian::ProblemDescription ik_pb(ik_pb_yaml, ctx);
 
-    // we are finally ready to make the CartesIO solver "OpenSot"
-    auto solver = XBot::Cartesian::CartesianInterfaceImpl::MakeInstance("OpenSot",
-                                                       ik_pb, ctx
-                                                       );
+    // // we are finally ready to make the CartesIO solver "OpenSot"
+    // auto solver = XBot::Cartesian::CartesianInterfaceImpl::MakeInstance("OpenSot",
+    //                                                    ik_pb, ctx
+    //                                                    );
 
-    auto right_arm_task = solver->getTask("arm1_8");
-    auto task_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
+    // auto right_arm_task = solver->getTask("arm1_8");
+    // auto task_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
 
-    // get pose reference from task
-    // ...
+    // // get pose reference from task
+    // // ...
 
-    // set new pose reference to task
-    // ...
+    // // set new pose reference to task
+    // // ...
 
 
     ros::Rate r(100);
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     // model->update();
         // }
 
-        rspub.publishTransforms(ros::Time::now(), "");
+        // rspub.publishTransforms(ros::Time::now(), "");
         r.sleep();
     }
 
