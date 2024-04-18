@@ -44,6 +44,8 @@ int main(int argc, char **argv)
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
     // qhome.setZero();
+
+
     model->setJointPosition(qhome);
     model->update();
 
@@ -82,10 +84,6 @@ int main(int argc, char **argv)
     // // // ...
     Eigen::Affine3d RightArm_T_ref;
 
-
-
-
-
     ros::Rate r(100);
     while (ros::ok())
     {
@@ -95,7 +93,7 @@ int main(int argc, char **argv)
             std::cout << "Commanding left hand forward 0.3m in 3.0 secs" << std::endl;
 
             task_cartesian->getPoseReference(RightArm_T_ref);
-            RightArm_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
+            RightArm_T_ref.pretranslate(Eigen::Vector3d(1,0,1));
             double target_time = 3.0;
             task_cartesian->setPoseTarget(RightArm_T_ref, target_time);
             current_state++;
@@ -152,6 +150,20 @@ int main(int argc, char **argv)
         model->setJointVelocity(qdot);
         model->update();
         time += dt;
+
+        
+    //     // Print position
+    //     std::stringstream ss;
+
+    //     for (int i = 0; i < q.size(); ++i)
+    //     {
+            
+    //         if (i < q.size() - 1){
+    //             ss << "qhome[" << i  << "]=" << q[i]<<";";
+    //         }
+
+    //     }    
+    //     ROS_INFO_STREAM(ss.str());
 
         rspub.publishTransforms(ros::Time::now(), "");
         r.sleep();
