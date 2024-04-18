@@ -78,11 +78,17 @@ int main(int argc, char **argv)
     int current_state = 0;
     Eigen::VectorXd q, qdot, qddot;
     auto right_arm_task = solver->getTask("arm2_8");
-    auto task_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
+    auto rarm_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
+
+    // auto torso_task = solver->getTask("Postural");
+    // auto torso_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(torso_task);
+
+
 
     // // // get pose reference from task
     // // // ...
     Eigen::Affine3d RightArm_T_ref;
+    Eigen::Affine3d Torso_T_ref;
 
     ros::Rate r(100);
     while (ros::ok())
@@ -92,16 +98,21 @@ int main(int argc, char **argv)
         {
             std::cout << "Commanding left hand forward 0.3m in 3.0 secs" << std::endl;
 
-            task_cartesian->getPoseReference(RightArm_T_ref);
-            RightArm_T_ref.pretranslate(Eigen::Vector3d(1,0,1));
+            rarm_cartesian->getPoseReference(RightArm_T_ref);
+            RightArm_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
             double target_time = 3.0;
-            task_cartesian->setPoseTarget(RightArm_T_ref, target_time);
+            rarm_cartesian->setPoseTarget(RightArm_T_ref, target_time);
+
+            // torso_cartesian->getPoseReference(Torso_T_ref);
+            // Torso_T_ref.pretranslate(Eigen::Vector3d(0,0,0));
+            // torso_cartesian->setPoseTarget(Torso_T_ref, target_time);
+
             current_state++;
         }
 
         if(current_state == 1) // here we check that the reaching started
         {
-            if(task_cartesian->getTaskState() == State::Reaching)
+            if(rarm_cartesian->getTaskState() == State::Reaching)
             {
                 std::cout << "Motion started!" << std::endl;
 
@@ -111,10 +122,10 @@ int main(int argc, char **argv)
 
         if(current_state == 2) // here we wait for it to be completed
         {
-            if(task_cartesian->getTaskState() == State::Online)
+            if(rarm_cartesian->getTaskState() == State::Online)
             {
                 Eigen::Affine3d T;
-                task_cartesian->getCurrentPose(T);
+                rarm_cartesian->getCurrentPose(T);
 
                 std::cout << "Motion completed, final error is " <<
                             (T.inverse()*RightArm_T_ref).translation().norm() << std::endl;
