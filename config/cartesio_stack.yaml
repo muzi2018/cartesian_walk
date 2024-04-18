@@ -1,6 +1,6 @@
 ## stack of tasks definition ##
 stack:
-    - ["RightArm"]
+    - ["RightArm", "Wheel1", "Wheel2", "Wheel3", "Wheel4"]
     - ["Postural"]
 constraints: ["JointLimits"]
 
@@ -12,6 +12,22 @@ JointLimits:
 RightArm:
     type: "Cartesian"
     distal_link: "arm2_8"
+
+Wheel1:
+    type: "Cartesian"
+    distal_link: "wheel_1"
+
+Wheel2:
+    type: "Cartesian"
+    distal_link: "wheel_2"
+
+Wheel3:
+    type: "Cartesian"
+    distal_link: "wheel_3"
+
+Wheel4:
+    type: "Cartesian"
+    distal_link: "wheel_4"
 
 Postural:
     type: "Postural"

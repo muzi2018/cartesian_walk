@@ -40,10 +40,11 @@ int main(int argc, char **argv)
     // and we can make the model class
     auto model = XBot::ModelInterface::getModel(xbot_cfg);
 
+
     // initialize to a homing configuration
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
-    // qhome.setZero();
+    // qhome.setZero(); 
 
 
     model->setJointPosition(qhome);
@@ -80,16 +81,18 @@ int main(int argc, char **argv)
     auto right_arm_task = solver->getTask("arm2_8");
     auto rarm_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
 
-    // auto torso_task = solver->getTask("Postural");
-    // auto torso_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(torso_task);
 
+    /**leg task*/
+    auto leg1_task = solver->getTask("wheel_1");
+    auto leg1_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(leg1_task);
 
 
     // // // get pose reference from task
     // // // ...
     Eigen::Affine3d RightArm_T_ref;
+    Eigen::Affine3d Leg1_T_ref;
     Eigen::Affine3d Torso_T_ref;
-
+  
     ros::Rate r(100);
     while (ros::ok())
     {
@@ -99,13 +102,13 @@ int main(int argc, char **argv)
             std::cout << "Commanding left hand forward 0.3m in 3.0 secs" << std::endl;
 
             rarm_cartesian->getPoseReference(RightArm_T_ref);
-            RightArm_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
+            RightArm_T_ref.pretranslate(Eigen::Vector3d(0.2,0,-0.2));
             double target_time = 3.0;
             rarm_cartesian->setPoseTarget(RightArm_T_ref, target_time);
 
-            // torso_cartesian->getPoseReference(Torso_T_ref);
-            // Torso_T_ref.pretranslate(Eigen::Vector3d(0,0,0));
-            // torso_cartesian->setPoseTarget(Torso_T_ref, target_time);
+            leg1_cartesian->getPoseReference(Leg1_T_ref);
+            Leg1_T_ref.pretranslate(Eigen::Vector3d(0,0,0.2));
+            leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time);
 
             current_state++;
         }
