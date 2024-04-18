@@ -1,0 +1,17 @@
+## stack of tasks definition ##
+stack:
+    - ["RightArm"]
+    - ["Postural"]
+constraints: ["JointLimits"]
+
+## task and constraint definition ##
+
+JointLimits:
+    type: "JointLimits"
+
+RightArm:
+    type: "Cartesian"
+    distal_link: "arm2_8"
+
+Postural:
+    type: "Postural"

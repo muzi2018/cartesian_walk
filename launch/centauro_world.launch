@@ -1,12 +1,26 @@
 <launch>
 
   <!-- Load the URDF/SRDF into the ROS Parameter Server -->
+    <!-- visualization config -->
+  <arg name="rviz"               default="true" />
+
+  <!-- rviz -->
+  <group if="$(arg rviz)">
+    <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
+    <arg name="rvizconfig" default="$(find cartesian_walk)/rviz/rviz.rviz" />
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" />
+  </group>
+
+
+  <param name="problem_description"
+          textfile="$(find cartesian_walk)/config/cartesio_stack.yaml"/> 
+
+
   <param name="urdf_path"
          value="$(find centauro_urdf)/urdf/centauro.urdf"/>
   <param name="srdf_path"
         value="$(find centauro_srdf)/srdf/centauro.srdf"/>
 
-  <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
 
   <node pkg="cartesian_walk" name="cartesian_walk" type="cartesian_walk_node" output="screen"/>
 

@@ -1,0 +1,102 @@
+ joint_map:
+  1: ankle_pitch_1
+  2: ankle_pitch_2
+  3: ankle_pitch_3
+  4: ankle_pitch_4
+  5: ankle_yaw_1
+  6: ankle_yaw_2
+  7: ankle_yaw_3
+  8: ankle_yaw_4
+  9: d435_head_joint
+  10: dagana_2_claw_joint
+  11: hip_pitch_1
+  12: hip_pitch_2
+  13: hip_pitch_3
+  14: hip_pitch_4
+  15: hip_yaw_1
+  16: hip_yaw_2
+  17: hip_yaw_3
+  18: hip_yaw_4
+  19: j_arm1_1
+  20: j_arm1_2
+  21: j_arm1_3
+  22: j_arm1_4
+  23: j_arm1_5
+  24: j_arm1_6
+  25: j_arm2_1
+  26: j_arm2_2
+  27: j_arm2_3
+  28: j_arm2_4
+  29: j_arm2_5
+  30: j_arm2_6
+  31: j_wheel_1
+  32: j_wheel_2
+  33: j_wheel_3
+  34: j_wheel_4
+  35: knee_pitch_1
+  36: knee_pitch_2
+  37: knee_pitch_3
+  38: knee_pitch_4
+  39: torso_yaw
+  40: velodyne_joint
+  41: imu_joint
+
+j1-4: ankle_pitch_1-4
+j5-8: ankle_yaw_1-4
+j11-14: hip_pitch_1-4
+j15-18: hip_yaw_1-4
+j19-24: j_arm1_1-6
+j25-30: j_arm2_1-6
+j31-34: j_wheel_1-4
+j35-38: knee_pitch_1-4
+j39: torso_yaw
+
+
+[info] Floating base link name: pelvis
+[info] Joint name: hip_yaw_1 RBDL ID: 6
+[info] Joint name: hip_pitch_1 RBDL ID: 7
+[info] Joint name: knee_pitch_1 RBDL ID: 8
+[info] Joint name: ankle_pitch_1 RBDL ID: 9
+[info] Joint name: ankle_yaw_1 RBDL ID: 10
+[info] Joint name: j_wheel_1 RBDL ID: 11
+[info] Joint name: hip_yaw_2 RBDL ID: 12
+[info] Joint name: hip_pitch_2 RBDL ID: 13
+[info] Joint name: knee_pitch_2 RBDL ID: 14
+[info] Joint name: ankle_pitch_2 RBDL ID: 15
+[info] Joint name: ankle_yaw_2 RBDL ID: 16
+[info] Joint name: j_wheel_2 RBDL ID: 17
+[info] Joint name: hip_yaw_3 RBDL ID: 18
+[info] Joint name: hip_pitch_3 RBDL ID: 19
+[info] Joint name: knee_pitch_3 RBDL ID: 20
+[info] Joint name: ankle_pitch_3 RBDL ID: 21
+[info] Joint name: ankle_yaw_3 RBDL ID: 22
+[info] Joint name: j_wheel_3 RBDL ID: 23
+[info] Joint name: hip_yaw_4 RBDL ID: 24
+[info] Joint name: hip_pitch_4 RBDL ID: 25
+[info] Joint name: knee_pitch_4 RBDL ID: 26
+[info] Joint name: ankle_pitch_4 RBDL ID: 27
+[info] Joint name: ankle_yaw_4 RBDL ID: 28
+[info] Joint name: j_wheel_4 RBDL ID: 29
+[info] Joint name: torso_yaw RBDL ID: 30
+[info] Joint name: j_arm1_1 RBDL ID: 31
+[info] Joint name: j_arm1_2 RBDL ID: 32
+[info] Joint name: j_arm1_3 RBDL ID: 33
+[info] Joint name: j_arm1_4 RBDL ID: 34
+[info] Joint name: j_arm1_5 RBDL ID: 35
+[info] Joint name: j_arm1_6 RBDL ID: 36
+[info] Joint name: j_arm2_1 RBDL ID: 37
+[info] Joint name: j_arm2_2 RBDL ID: 38
+[info] Joint name: j_arm2_3 RBDL ID: 39
+[info] Joint name: j_arm2_4 RBDL ID: 40
+[info] Joint name: j_arm2_5 RBDL ID: 41
+[info] Joint name: j_arm2_6 RBDL ID: 42
+[info] Joint name: dagana_2_claw_joint RBDL ID: 43
+[info] Joint name: d435_head_joint RBDL ID: 44
+[info] Joint name: velodyne_joint RBDL ID: 45
+
+
+
+[ INFO] [1713424099.701535323]: qhome: [q0: 0 q1: 0 q2: 0 q3: 0 q4: 0 q5: 0 q6: -0.746874 q7: -1.25409 q8: -1.55576 q9: -0.301666 q10: 0.746874 q11: 0 q12: 0.746874 q13: 1.25409 q14: 1.55576 q15: 0.301666 q16: -0.746874 q17: 0 q18: 0.746874 q19: 1.25409 q20: 1.55576 q21: 0.301667 q22: -0.746874 q23: 0 q24: -0.746874 q25: -1.25409 q26: -1.55576 q27: -0.301667 q28: 0.746874 q29: 0 q30: 3.56617e-13 q31: 0.520149 q32: 0.320865 q33: 0.274669 q34: -2.23604 q35: 0.0500815 q36: -0.781461 q37: 0.520149 q38: -0.320865 q39: -0.274669 q40: -2.23604 q41: -0.0500815 q42: -0.781461 q43: 0 q44: 0 ]
+
+q_results: [q0: 0 q1: 0 q2: 0 q3: 0 q4: 0 q5: 0 q6: -0.746874 q7: -1.25409 q8: -1.55576 q9: -0.301666 q10: 0.746874 q11: 0 q12: 0.746874 q13: 1.25409 q14: 1.55576 q15: 0.301666 q16: -0.746874 q17: 0 q18: 0.746874 q19: 1.25409 q20: 1.55576 q21: 0.301667 q22: -0.746874 q23: 0 q24: -0.746874 q25: -1.25409 q26: -1.55576 q27: -0.301667 q28: 0.746874 q29: 0 q30: 3.56617e-13 q31: 0.520149 q32: 0.320865 q33: 0.274669 q34: -2.23604 q35: 0.0500815 q36: -0.781461 q37: 0.520149 q38: -0.320865 q39: -0.274669 q40: -2.23604 q41: -0.0500815 q42: -0.781461 q43: 0 q44: 0 ]
+
