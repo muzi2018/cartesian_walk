@@ -80,55 +80,78 @@ int main(int argc, char **argv)
 
     // // // get pose reference from task
     // // // ...
-    Eigen::Affine3d RightArm_T_ref = Eigen::Affine3d::Identity();
-    task_cartesian->getPoseReference(RightArm_T_ref);
+    Eigen::Affine3d RightArm_T_ref;
 
-    // // set new pose reference to task
-    // // ...
-    RightArm_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
-    double  target_time = 3.0;
-    task_cartesian->setPoseTarget(RightArm_T_ref, target_time);
+
+
 
 
     ros::Rate r(100);
     while (ros::ok())
     {
 
-        // // while task state is Reaching
-        while ( task_cartesian->getTaskState() == State::Reaching && current_state==0)
+        if(current_state == 0) // here we command a reaching motion
         {
-            solver->update(time, dt);
+            std::cout << "Commanding left hand forward 0.3m in 3.0 secs" << std::endl;
 
-            model->getJointPosition(q);
-            model->getJointVelocity(qdot);
-            model->getJointAcceleration(qddot);
+            task_cartesian->getPoseReference(RightArm_T_ref);
+            RightArm_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
+            double target_time = 3.0;
+            task_cartesian->setPoseTarget(RightArm_T_ref, target_time);
+            current_state++;
+        }
 
-            q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
-            qdot += dt * qddot;
-
-            model->setJointPosition(q);
-            model->setJointVelocity(qdot);
-            model->update();
-
-            ROS_INFO_STREAM("task reaching");
-
-            std::stringstream ss;
-            ss << "qdot_results: [";
-            for (int i = 0; i < qdot.size(); ++i)
+        if(current_state == 1) // here we check that the reaching started
+        {
+            if(task_cartesian->getTaskState() == State::Reaching)
             {
-                
-                if (i < qdot.size() - 1){
-                    ss << "qdot" << i  << ": ";
-                    ss << qdot[i];
-                    ss << " ";
-                }
+                std::cout << "Motion started!" << std::endl;
 
+                current_state++;
             }
-            ss << "]";
-            ROS_INFO_STREAM(ss.str());
-            current_state ++;
+        }
+
+        if(current_state == 2) // here we wait for it to be completed
+        {
+            if(task_cartesian->getTaskState() == State::Online)
+            {
+                Eigen::Affine3d T;
+                task_cartesian->getCurrentPose(T);
+
+                std::cout << "Motion completed, final error is " <<
+                            (T.inverse()*RightArm_T_ref).translation().norm() << std::endl;
+
+                current_state++;
+            }
+        }
+
+        if(current_state == 3) // here we wait the robot to come to a stop
+        {
+            std::cout << "qdot norm is " << qdot.norm() << std::endl;
+            if(qdot.norm() < 1e-3)
+            {
+                std::cout << "Robot came to a stop, press ENTER to exit.. \n";
+                std::cin.ignore();
+                current_state++;
+            }
 
         }
+
+    // // while task state is Reaching
+
+        solver->update(time, dt);
+
+        model->getJointPosition(q);
+        model->getJointVelocity(qdot);
+        model->getJointAcceleration(qddot);
+
+        q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+        qdot += dt * qddot;
+
+        model->setJointPosition(q);
+        model->setJointVelocity(qdot);
+        model->update();
+        time += dt;
 
         rspub.publishTransforms(ros::Time::now(), "");
         r.sleep();
