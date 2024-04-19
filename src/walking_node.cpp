@@ -121,120 +121,54 @@ int main(int argc, char **argv)
     while (ros::ok())
     {
 
-        if (leg_state == 1 && time <= phase_time)
-        {
-            if (leg1_cartesian->getTaskState() == State::Online)
+
+            if (current_state == 0)
             {
-                x = dx * (++segment) ;
-                z = 0.1*sin(3.14*x/long_x);
-                ROS_INFO_STREAM("x");
-                ROS_INFO_STREAM(x);
-                ROS_INFO_STREAM("z");
-                ROS_INFO_STREAM(z);
+                x = 0.3 ;
+                z = 0.3;
                 leg1_cartesian->getPoseReference(Leg1_T_ref);
                 Leg1_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
-                leg1_cartesian->setPoseTarget(Leg1_T_ref, 1);
+                leg1_cartesian->setPoseTarget(Leg1_T_ref, 6);
+                current_state++;
             }
-            if(leg1_cartesian->getTaskState() == State::Reaching)
+            if(current_state == 1)
             {
-                // std::cout << "Motion started!" << std::endl;
-                solver->update(time, dt);
-                model->getJointPosition(q);
-                model->getJointVelocity(qdot);
-                model->getJointAcceleration(qddot);
-                q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
-                qdot += dt * qddot;
-                model->setJointPosition(q);
-                model->setJointVelocity(qdot);
-                model->update();
-                time += dt;
-                if (time >= 1 && reset)
+
+                if (leg1_cartesian->getTaskState() == State::Reaching)
                 {
-                // current_state--;
-                ROS_INFO_STREAM("time");
-                ROS_INFO_STREAM(time);
-                leg1_cartesian->abort();
-                reset = false;
-                ROS_INFO_STREAM("leg1_cartesian->getTaskState()");
-                ROS_INFO_STREAM(XBot::Cartesian::EnumToString(leg1_cartesian->getTaskState()));
+                    {
+                        std::cout << "Motion started!" << std::endl;
+                        current_state++;
+                    }
+                }
+
+            }
+            if(current_state == 2) // here we wait for it to be completed
+            {
+                if(leg1_cartesian->getTaskState() == State::Online)
+                {
+                    Eigen::Affine3d T;
+                    leg1_cartesian->getCurrentPose(T);
+
+                    std::cout << "Motion completed, final error is " <<
+                                (T.inverse()*Leg1_T_ref).translation().norm() << std::endl;
+
+                    current_state++;
+                    current_state=0;
                 }
             }
-        }
-        
 
-
-    //     if (time <= target_time)
-    //     {
-    //             // x = dx * time;
-    //             // z = 100*sin(3.14*x/long_x);
-    //             // if (x >= long_x)
-    //             // {
-    //             //     x = long_x;
-    //             //     z = 0;
-    //             // }
-                
-    //             // leg1_cartesian->reset();
-    //             // leg1_cartesian->getPoseReference(Leg1_T_ref);
-    //             // Leg1_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
-    //             // leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time);
-    //             // if (time > 1*target_time/num_leg)
-    //             // {
-    //             //     leg1_cartesian->reset();
-    //             // }
-                
-
-                
-    //             // leg2_cartesian->reset();    
-    //             // leg2_cartesian->getPoseReference(Leg2_T_ref);
-    //             // Leg2_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
-    //             // leg2_cartesian->setPoseTarget(Leg2_T_ref, target_time);
-
-    //             // ROS_INFO_STREAM("time");
-    //             // ROS_INFO_STREAM(time);
-    //             // ROS_INFO_STREAM("x");
-    //             // ROS_INFO_STREAM(x);
-    //             // ROS_INFO_STREAM("z");
-    //             // ROS_INFO_STREAM(z);
-    //             // ROS_INFO_STREAM("current_state");
-    //             // ROS_INFO_STREAM(current_state);
-    //             // ROS_INFO_STREAM("target_time");
-    //             // ROS_INFO_STREAM(target_time);
-
-
-    //         if(leg1_cartesian->getTaskState() == State::Reaching)
-    //         {
-    //             std::cout << "Motion started!" << std::endl;
-    //             solver->update(time, dt);
-    //             model->getJointPosition(q);
-    //             model->getJointVelocity(qdot);
-    //             model->getJointAcceleration(qddot);
-    //             q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
-    //             qdot += dt * qddot;
-    //             model->setJointPosition(q);
-    //             model->setJointVelocity(qdot);
-    //             model->update();
-    //             time += dt;
-    //             // current_state--;
-    //         }
-
-    //         if(leg1_cartesian->getTaskState() == State::Online)
-    //         {
-
-    //             // leg1_cartesian.reset();
-    //             leg1_cartesian->getPoseReference(Leg1_T_ref);
-    //             Leg1_T_ref.pretranslate(Eigen::Vector3d(0.0,0,0.2));
-    //             leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time/num_leg);
-    //         }
-
-            
-
-    //     ROS_INFO_STREAM("leg1_cartesian->getTaskState()");
-    //     ROS_INFO_STREAM(XBot::Cartesian::EnumToString(leg1_cartesian->getTaskState()));
-    //     // KDL::Frame pose;
-    //     // model->getPose("wheel_1", pose);
-    //     // std::cout << "Vector p: (" << pose.p.x() << ", " 
-    //     // << pose.p.y() << ", " << pose.p.z() << ")" << std::endl;
-    // }
+            // std::cout << "Motion started!" << std::endl;
+            solver->update(time, dt);
+            model->getJointPosition(q);
+            model->getJointVelocity(qdot);
+            model->getJointAcceleration(qddot);
+            q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+            qdot += dt * qddot;
+            model->setJointPosition(q);
+            model->setJointVelocity(qdot);
+            model->update();
+            time += dt;
 
 
         rspub.publishTransforms(ros::Time::now(), "");
