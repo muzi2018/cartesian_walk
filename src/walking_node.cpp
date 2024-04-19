@@ -57,7 +57,7 @@ int main(int argc, char **argv)
     // context object which stores some information, such as
     // the control period
     const double dt = 0.01;
-    double time = 0;
+    double time = 0, plan_time = 0;
     auto ctx = std::make_shared<XBot::Cartesian::Context>(
                 std::make_shared<XBot::Cartesian::Parameters>(dt),
                 model
@@ -86,148 +86,161 @@ int main(int argc, char **argv)
     auto leg1_task = solver->getTask("wheel_1");
     auto leg1_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(leg1_task);
 
+    /**leg task*/
+    auto leg2_task = solver->getTask("wheel_2");
+    auto leg2_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(leg2_task);
 
     // // // get pose reference from task
     // // // ...
     Eigen::Affine3d RightArm_T_ref;
     Eigen::Affine3d Leg1_T_ref;
+    Eigen::Affine3d Leg2_T_ref;
+
     Eigen::Affine3d Torso_T_ref;
     
-    int leg_state = 1;
+    int leg_state = 1,num_leg = 2, segment = 0;
     double long_x = 0.3;
-    double target_time = 3.0;
-    double dx = long_x /target_time; // 0.1 / 3 = 0.03 m / s
+    double phase_time = 3, target_time = num_leg*phase_time;
+    double dx = long_x /phase_time; // 0.3 / 3 = 0.1 m / s
     double x, z;
+    bool reset = true;
 
     // Trajectory::WayPointVector wp;
     // Eigen::Affine3d w_T_f1 ;
     // w_T_f1.setIdentity();
 
-    // w_T_f1.pretranslate(Eigen::Vector3d(0,0,0.2));
-    // wp.emplace_back(w_T_f1, 2);
-    // w_T_f1.setIdentity();
-    // wp.emplace_back(w_T_f1, 4);
+    // w_T_f1.pretranslate(Eigen::Vector3d(0.2,0,0));
+    // wp.emplace_back(w_T_f1,10);
+    // leg1_cartesian->setWayPoints(wp);
+    
+
+
+
 
     ros::Rate r(100);
     while (ros::ok())
     {
 
-            // command leg 1, leg_state ++
-
-            // command leg 2
-
-            // command leg 3
-
-            // command leg 4
-
-        // if (current_state == 0)     
-        // {
-        //     leg1_cartesian->setWayPoints(wp);
-        //     current_state++;
-
-        // }
-        
-
-
-        // if(current_state == 0) // here we command a reaching motion
-        // {
-        //     std::cout << "Commanding left hand forward 0.3m in 3.0 secs" << std::endl;
-
-        //     rarm_cartesian->getPoseReference(RightArm_T_ref);
-        //     RightArm_T_ref.pretranslate(Eigen::Vector3d(0.2,0,-0.2));
-        //     rarm_cartesian->setPoseTarget(RightArm_T_ref, target_time);
-
-        //     leg1_cartesian->getPoseReference(Leg1_T_ref);
-        //     Leg1_T_ref.pretranslate(Eigen::Vector3d(0,0,0.2));
-        //     leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time);
-        //     // leg1_cartesian->setWayPoints(wp);
-        //     current_state++;
-        // }
-
-        // if(current_state == 1) // here we check that the reaching started
-        // {
-        //     if(rarm_cartesian->getTaskState() == State::Reaching)
-        //     {
-        //         std::cout << "Motion started!" << std::endl;
-
-        //         current_state++;
-        //     }
-        // }
-
-        // if(current_state == 2) // here we wait for it to be completed
-        // {
-        //     if(rarm_cartesian->getTaskState() == State::Online)
-        //     {
-        //         Eigen::Affine3d T;
-        //         rarm_cartesian->getCurrentPose(T);
-
-        //         std::cout << "Motion completed, final error is " <<
-        //                     (T.inverse()*RightArm_T_ref).translation().norm() << std::endl;
-
-        //         current_state++;
-        //     }
-        // }
-
-        // if(current_state == 3) // here we wait the robot to come to a stop
-        // {
-        //     std::cout << "qdot norm is " << qdot.norm() << std::endl;
-        //     if(qdot.norm() < 1e-3)
-        //     {
-        //         std::cout << "Robot came to a stop, press ENTER to exit.. \n";
-        //         std::cin.ignore();
-        //         current_state++;
-        //     }
-
-        // }
-
-    // while task state is Reaching
-
-        if (time <= target_time)
+        if (leg_state == 1 && time <= phase_time)
         {
-            if (current_state == 0)
+            if (leg1_cartesian->getTaskState() == State::Online)
             {
-                leg1_cartesian->reset();
-                x = dx * time;
-                z = 3*sin(3.14*x/long_x);
-                leg1_cartesian->getPoseReference(Leg1_T_ref);
-                Leg1_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
-                leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time);
-                ROS_INFO_STREAM("time");
-                ROS_INFO_STREAM(time);
+                x = dx * (++segment) ;
+                z = 0.1*sin(3.14*x/long_x);
                 ROS_INFO_STREAM("x");
                 ROS_INFO_STREAM(x);
                 ROS_INFO_STREAM("z");
                 ROS_INFO_STREAM(z);
-                ROS_INFO_STREAM("current_state");
-                ROS_INFO_STREAM(current_state);
-                current_state++;
+                leg1_cartesian->getPoseReference(Leg1_T_ref);
+                Leg1_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
+                leg1_cartesian->setPoseTarget(Leg1_T_ref, 1);
             }
             if(leg1_cartesian->getTaskState() == State::Reaching)
             {
-                std::cout << "Motion started!" << std::endl;
+                // std::cout << "Motion started!" << std::endl;
+                solver->update(time, dt);
+                model->getJointPosition(q);
+                model->getJointVelocity(qdot);
+                model->getJointAcceleration(qddot);
+                q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+                qdot += dt * qddot;
+                model->setJointPosition(q);
+                model->setJointVelocity(qdot);
+                model->update();
+                time += dt;
 
-                current_state--;
+                if (time >= 1 && reset)
+                {
+                // current_state--;
+                ROS_INFO_STREAM("time");
+                ROS_INFO_STREAM(time);
+                leg1_cartesian->abort();
+                reset = false;
+                ROS_INFO_STREAM("leg1_cartesian->getTaskState()");
+                ROS_INFO_STREAM(XBot::Cartesian::EnumToString(leg1_cartesian->getTaskState()));
+                }
             }
-
         }
         
 
-        solver->update(time, dt);
-        model->getJointPosition(q);
-        model->getJointVelocity(qdot);
-        model->getJointAcceleration(qddot);
-        q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
-        qdot += dt * qddot;
-        model->setJointPosition(q);
-        model->setJointVelocity(qdot);
-        model->update();
-        time += dt;
+
+    //     if (time <= target_time)
+    //     {
+    //             // x = dx * time;
+    //             // z = 100*sin(3.14*x/long_x);
+    //             // if (x >= long_x)
+    //             // {
+    //             //     x = long_x;
+    //             //     z = 0;
+    //             // }
+                
+    //             // leg1_cartesian->reset();
+    //             // leg1_cartesian->getPoseReference(Leg1_T_ref);
+    //             // Leg1_T_ref.pretranslate(Eigen::Vector3d(0.3,0,0));
+    //             // leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time);
+    //             // if (time > 1*target_time/num_leg)
+    //             // {
+    //             //     leg1_cartesian->reset();
+    //             // }
+                
+
+                
+    //             // leg2_cartesian->reset();    
+    //             // leg2_cartesian->getPoseReference(Leg2_T_ref);
+    //             // Leg2_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
+    //             // leg2_cartesian->setPoseTarget(Leg2_T_ref, target_time);
+
+    //             // ROS_INFO_STREAM("time");
+    //             // ROS_INFO_STREAM(time);
+    //             // ROS_INFO_STREAM("x");
+    //             // ROS_INFO_STREAM(x);
+    //             // ROS_INFO_STREAM("z");
+    //             // ROS_INFO_STREAM(z);
+    //             // ROS_INFO_STREAM("current_state");
+    //             // ROS_INFO_STREAM(current_state);
+    //             // ROS_INFO_STREAM("target_time");
+    //             // ROS_INFO_STREAM(target_time);
+
+
+    //         if(leg1_cartesian->getTaskState() == State::Reaching)
+    //         {
+    //             std::cout << "Motion started!" << std::endl;
+    //             solver->update(time, dt);
+    //             model->getJointPosition(q);
+    //             model->getJointVelocity(qdot);
+    //             model->getJointAcceleration(qddot);
+    //             q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+    //             qdot += dt * qddot;
+    //             model->setJointPosition(q);
+    //             model->setJointVelocity(qdot);
+    //             model->update();
+    //             time += dt;
+    //             // current_state--;
+    //         }
+
+    //         if(leg1_cartesian->getTaskState() == State::Online)
+    //         {
+
+    //             // leg1_cartesian.reset();
+    //             leg1_cartesian->getPoseReference(Leg1_T_ref);
+    //             Leg1_T_ref.pretranslate(Eigen::Vector3d(0.0,0,0.2));
+    //             leg1_cartesian->setPoseTarget(Leg1_T_ref, target_time/num_leg);
+    //         }
+
+            
+
+    //     ROS_INFO_STREAM("leg1_cartesian->getTaskState()");
+    //     ROS_INFO_STREAM(XBot::Cartesian::EnumToString(leg1_cartesian->getTaskState()));
+    //     // KDL::Frame pose;
+    //     // model->getPose("wheel_1", pose);
+    //     // std::cout << "Vector p: (" << pose.p.x() << ", " 
+    //     // << pose.p.y() << ", " << pose.p.z() << ")" << std::endl;
+    // }
+
 
         rspub.publishTransforms(ros::Time::now(), "");
         r.sleep();
     }
-
-
 }
 
 
