@@ -148,7 +148,6 @@ int main(int argc, char **argv)
                 model->setJointVelocity(qdot);
                 model->update();
                 time += dt;
-
                 if (time >= 1 && reset)
                 {
                 // current_state--;
