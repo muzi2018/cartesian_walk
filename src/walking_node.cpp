@@ -99,9 +99,8 @@ int main(int argc, char **argv)
     Eigen::Affine3d Torso_T_ref;
     
     int leg_state = 1,num_leg = 2, segment = 0;
-    double long_x = 0.3;
+    
     double phase_time = 3, target_time = num_leg*phase_time;
-    double dx = long_x /phase_time; // 0.3 / 3 = 0.1 m / s
     double x, z;
     bool reset = true;
 
@@ -114,26 +113,27 @@ int main(int argc, char **argv)
     // leg1_cartesian->setWayPoints(wp);
     
 
-
-
+    int i=1;
+    double seg_num = 4;
+    double long_x = 0.3;
+    double seg_time = phase_time / seg_num;
+    double seg_dis = long_x / seg_num;
 
     ros::Rate r(100);
     while (ros::ok())
     {
-
-
             if (current_state == 0)
             {
-                x = 0.3 ;
-                z = 0.3;
+                x = seg_dis;
+                z = 0.2*sin(3.14*i/seg_num)-0.2*sin(3.14*(i-1)/seg_num);
                 leg1_cartesian->getPoseReference(Leg1_T_ref);
                 Leg1_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
-                leg1_cartesian->setPoseTarget(Leg1_T_ref, 6);
+                leg1_cartesian->setPoseTarget(Leg1_T_ref, 8);
                 current_state++;
+                i++;
             }
             if(current_state == 1)
             {
-
                 if (leg1_cartesian->getTaskState() == State::Reaching)
                 {
                     {
@@ -153,8 +153,13 @@ int main(int argc, char **argv)
                     std::cout << "Motion completed, final error is " <<
                                 (T.inverse()*Leg1_T_ref).translation().norm() << std::endl;
 
-                    current_state++;
-                    current_state=0;
+                    
+                    if (i != 5)
+                    {
+                        current_state=0;
+                    }
+                    
+                    
                 }
             }
 
