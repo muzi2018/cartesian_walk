@@ -75,15 +75,15 @@ int main(int argc, char **argv)
                                                        ik_pb, ctx
                                                        );
 
-    /**arm task*/
+    /** task*/
     int current_state1 = 0;
     int current_state2 = 0;
     int current_state3 = 0;
     int current_state4 = 0;
 
     Eigen::VectorXd q, qdot, qddot;
-    auto right_arm_task = solver->getTask("arm2_8");
-    auto rarm_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
+    // auto right_arm_task = solver->getTask("arm2_8");
+    // auto rarm_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
 
 
     /**leg task*/
