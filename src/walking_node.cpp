@@ -109,7 +109,6 @@ int main(int argc, char **argv)
     Eigen::Affine3d Leg2_T_ref;
     Eigen::Affine3d Leg3_T_ref;
     Eigen::Affine3d Leg4_T_ref;
-
     Eigen::Affine3d Torso_T_ref;
     
     int leg_state = 1,num_leg = 2, segment = 0;
@@ -179,9 +178,6 @@ int main(int argc, char **argv)
                         i = 0;
                         leg_state++;
                     }
-                        
-                    
-                    
                 }
             }
 
@@ -234,9 +230,6 @@ int main(int argc, char **argv)
                         i=0;
                         leg_state++;
                     }
-                        
-                    
-                    
                 }
             }
         }
@@ -288,9 +281,6 @@ int main(int argc, char **argv)
                         i=0;
                         leg_state++;
                     }
-                        
-                    
-                    
                 }
             }
         }
@@ -331,7 +321,6 @@ int main(int argc, char **argv)
 
                     std::cout << "Motion completed, final error is " <<
                                 (T.inverse()*Leg4_T_ref).translation().norm() << std::endl;
-
                     
                     if (i != seg_num+1)
                     {
@@ -342,17 +331,9 @@ int main(int argc, char **argv)
                         i=0;
                         leg_state++;
                     }
-                        
-                    
-                    
                 }
             }
         }
-
-
-
-
-
 
             // std::cout << "Motion started!" << std::endl;
             solver->update(time, dt);
