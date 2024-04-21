@@ -329,7 +329,7 @@ int main(int argc, char **argv)
                     }else if (i == seg_num+1)
                     {
                         i=0;
-                        leg_state++;
+                        leg_state=1;
                     }
                 }
             }
