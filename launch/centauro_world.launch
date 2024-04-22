@@ -7,7 +7,9 @@
   <!-- rviz -->
   <group if="$(arg rviz)">
     <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
-    <arg name="rvizconfig" default="/home/wang/forest_ws/src/cartesian_walk/rviz/rviz.rviz" />
+    <!-- <arg name="rvizconfig" default="/home/wang/forest_ws/src/cartesian_walk/rviz/rviz.rviz" /> -->
+    <arg name="rvizconfig" default="$(cartesian_walk)/rviz/rviz.rviz" />
+
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" />
   </group>
 
