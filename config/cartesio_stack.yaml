@@ -1,6 +1,6 @@
 ## stack of tasks definition ##
 stack:
-    - ["Wheel1", "Wheel2", "Wheel3", "Wheel4"]
+    - ["Wheel1", "Wheel2", "Wheel3", "Wheel4", "Com"]
     - ["Postural"]
 constraints: ["JointLimits"]
 
@@ -28,6 +28,10 @@ Wheel3:
 Wheel4:
     type: "Cartesian"
     distal_link: "wheel_4"
+
+Com:
+    type: "Com"
+    indices: [0, 1]
 
 Postural:
     type: "Postural"

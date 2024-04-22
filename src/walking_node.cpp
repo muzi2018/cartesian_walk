@@ -2,44 +2,58 @@
 #include <ros/init.h>
 #include <ros/package.h>
 #include <ros/ros.h>
-
+#include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/ModelInterface.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/utils/RobotStatePublisher.h>
+#include <RobotInterfaceROS/ConfigFromParam.h>
+
 
 #include <Eigen/Dense>
 
+#include <std_srvs/Empty.h>
+
 using namespace XBot::Cartesian;
+
+
+bool start_walking_bool = false;
+
+bool start_walking(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+{
+    start_walking_bool = !start_walking_bool;
+    return true;
+};
 
 int main(int argc, char **argv)
 {
     const std::string robotName = "centauro";
     // Initialize ros node
     ros::init(argc, argv, robotName);
-    ros::NodeHandle nodeHandle;
+    ros::NodeHandle nodeHandle("");
     // Get node parameters
-    std::string URDF_PATH, SRDF_PATH;
-    nodeHandle.getParam("/urdf_path", URDF_PATH);
-    nodeHandle.getParam("/srdf_path", SRDF_PATH);
+    // std::string URDF_PATH, SRDF_PATH;
+    // nodeHandle.getParam("/urdf_path", URDF_PATH);
+    // nodeHandle.getParam("/srdf_path", SRDF_PATH);
 
+    auto cfg = XBot::ConfigOptionsFromParamServer();
 
     // an option structure which is needed to make a model
-    XBot::ConfigOptions xbot_cfg;
+    // XBot::ConfigOptions xbot_cfg;
 
-    // set the urdf and srdf path..
-    xbot_cfg.set_urdf_path(URDF_PATH);
-    xbot_cfg.set_srdf_path(SRDF_PATH);
+    // // set the urdf and srdf path..
+    // xbot_cfg.set_urdf_path(URDF_PATH);
+    // xbot_cfg.set_srdf_path(SRDF_PATH);
 
-    // the following call is needed to generate some default joint IDs
-    xbot_cfg.generate_jidmap();
+    // // the following call is needed to generate some default joint IDs
+    // xbot_cfg.generate_jidmap();
 
-    // some additional parameters..
-    xbot_cfg.set_parameter("is_model_floating_base", true);
-    xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+    // // some additional parameters..
+    // xbot_cfg.set_parameter("is_model_floating_base", true);
+    // xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
 
     // and we can make the model class
-    auto model = XBot::ModelInterface::getModel(xbot_cfg);
-
+    auto model = XBot::ModelInterface::getModel(cfg);
+    auto robot = XBot::RobotInterface::getRobot(cfg);
 
     // initialize to a homing configuration
     Eigen::VectorXd qhome;
@@ -86,6 +100,7 @@ int main(int argc, char **argv)
     // auto rarm_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(right_arm_task);
 
 
+
     /**leg task*/
     auto leg1_task = solver->getTask("wheel_1");
     auto leg1_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(leg1_task);
@@ -101,6 +116,9 @@ int main(int argc, char **argv)
     /**leg task*/
     auto leg4_task = solver->getTask("wheel_4");
     auto leg4_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(leg4_task);
+
+    auto com_task = solver->getTask("com");
+    auto com_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(com_task);
 
     // // // get pose reference from task
     // // // ...
@@ -134,8 +152,17 @@ int main(int argc, char **argv)
     double leg_height = 0.15;
 
     ros::Rate r(100);
+
+    ros::ServiceServer service = nodeHandle.advertiseService("start_walking", start_walking);
+
     while (ros::ok())
     {
+        while (!start_walking_bool)
+        {
+            ros::spinOnce();
+            r.sleep();
+        }
+
         if (leg_state == 1)
         {
             if (current_state1 == 0)
@@ -345,6 +372,10 @@ int main(int argc, char **argv)
             model->setJointPosition(q);
             model->setJointVelocity(qdot);
             model->update();
+
+            robot->setPositionReference(q.tail(robot->getJointNum()));
+            robot->move();
+
             time += dt;
 
 

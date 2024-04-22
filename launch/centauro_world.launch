@@ -1,5 +1,73 @@
 <launch>
 
+  <param name="use_sim_time" type="bool" value="true"/>
+  <arg name="gazebo" default="true"/>
+  
+  
+  <!-- gazebo configuration parameters -->
+  <arg name="paused" default="false"/>
+  <arg name="use_sim_time" default="true"/>
+  <arg name="gui" default="true"/>
+  <arg name="headless" default="false"/>
+  <arg name="debug" default="false"/>
+  <arg name="physics" default="ode"/>
+  <arg name="verbose" default="false"/>
+  <arg name="extra_gazebo_args" default=""/>
+  
+  <!-- centauro configuration parameters -->
+  <arg name="arms" default="true"/>
+  <arg name="legs" default="true"/>
+  <arg name="velodyne" default="false"/>
+  <arg name="realsense" default="false"/>
+  <arg name="battery" default="false"/>
+  <arg name="end_effector_left" default="ball"/>
+  <arg name="end_effector_right" default="ball"/>
+
+  <!-- Internal arguments, rewrite human-readable gazebo arguments to it's internal arguments -->
+  <arg unless="$(arg paused)" name="command_arg1" value=""/>
+  <arg     if="$(arg paused)" name="command_arg1" value="-u"/>
+  <arg unless="$(arg headless)" name="command_arg2" value=""/>
+  <arg     if="$(arg headless)" name="command_arg2" value="-r"/>
+  <arg unless="$(arg verbose)" name="command_arg3" value=""/>
+  <arg     if="$(arg verbose)" name="command_arg3" value="--verbose"/>
+  <arg unless="$(arg debug)" name="script_type" value="gzserver"/>
+  <arg     if="$(arg debug)" name="script_type" value="debug"/>
+
+  
+  <!-- from where the simulation enviornment will be loaded:
+       WARNING: exactly one parameter has to be true, otherwise simulation behaviour is undefined -->
+  <arg name="world_name" default="$(find centauro_gazebo)/worlds/centauro.world"/>
+
+
+  <!-- Load the URDF/SRDF into the ROS Parameter Server -->
+  <param name="robot_description_gz"
+         command="$(find xacro)/xacro $(find centauro_urdf)/urdf/centauro_robot.urdf.xacro floating_joint:=false upper_body:=$(arg arms) legs:=$(arg legs) velodyne:=$(arg velodyne) realsense:=$(arg realsense) battery:=$(arg battery) end_effector_left:=$(arg end_effector_left) end_effector_right:=$(arg end_effector_right)"/>
+  
+  <!-- run gazebo -->
+  <!-- <group if="$(arg gazebo)">
+  	<node name="gazebo" 
+          pkg="gazebo_ros" 
+          type="$(arg script_type)" 
+          respawn="false" 
+          output="screen"
+		      args="$(arg command_arg1) $(arg command_arg2) $(arg command_arg3) -e $(arg physics) $(arg extra_gazebo_args) $(arg world_name) -namespace centauro" />
+
+    <node name="gazebo_gui" pkg="gazebo_ros" type="gzclient" respawn="false" output="screen" if="$(arg gui)"/>
+
+	  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
+		      args="-urdf -model centauro -param robot_description_gz"/>
+
+  </group> -->
+
+
+
+
+
+
+
+
+
+
   <!-- Load the URDF/SRDF into the ROS Parameter Server -->
     <!-- visualization config -->
   <arg name="rviz"               default="true" />
@@ -7,8 +75,9 @@
   <!-- rviz -->
   <group if="$(arg rviz)">
     <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
-    <!-- <arg name="rvizconfig" default="/home/wang/forest_ws/src/cartesian_walk/rviz/rviz.rviz" /> -->
-    <arg name="rvizconfig" default="$(cartesian_walk)/rviz/rviz.rviz" />
+    <param name="robot_description_semantic" textfile="$(find centauro_srdf)/srdf/centauro.srdf"/>
+    <arg name="rvizconfig" default="/home/wang/forest_ws/src/cartesian_walk/rviz/rviz.rviz" />
+    <!-- <arg name="rvizconfig" default="$(find cartesian_walk)/rviz/rviz.rviz" /> -->
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" />
   </group>
@@ -16,12 +85,6 @@
 
   <param name="problem_description"
           textfile="$(find cartesian_walk)/config/cartesio_stack.yaml"/> 
-
-
-  <param name="urdf_path"
-         value="$(find centauro_urdf)/urdf/centauro.urdf"/>
-  <param name="srdf_path"
-        value="$(find centauro_srdf)/srdf/centauro.srdf"/>
 
 
   <node pkg="cartesian_walk" name="cartesian_walk" type="cartesian_walk_node" output="screen"/>
