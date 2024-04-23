@@ -196,7 +196,11 @@ const std::string robotName = "centauro";
             if (i == 1) // update com position and com shift for balance
             {
                 model->getCOM(com_pos);
+                model->getPointPosition(leg1_frame, Eigen::Vector3d::Zero(),leg1_pos);
+                model->getPointPosition(leg2_frame, Eigen::Vector3d::Zero(),leg2_pos);
+                model->getPointPosition(leg3_frame, Eigen::Vector3d::Zero(),leg3_pos);
                 model->getPointPosition(leg4_frame, Eigen::Vector3d::Zero(),leg4_pos); 
+                auto leg_mid = (leg1_pos + leg2_pos + leg3_pos + leg4_pos);
                 com_shift_x = (leg4_pos[0] - com_pos[0])/5;
                 com_shift_y = (leg4_pos[1] - com_pos[1])/5;
                 com_shift_x = com_shift_x / seg_num;
