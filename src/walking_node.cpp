@@ -31,24 +31,25 @@ const std::string robotName = "centauro";
     ros::init(argc, argv, robotName);
     ros::NodeHandle nodeHandle("");
     // Get node parameters
-    // std::string URDF_PATH, SRDF_PATH;
-    // nodeHandle.getParam("/urdf_path", URDF_PATH);
-    // nodeHandle.getParam("/srdf_path", SRDF_PATH);
-    auto cfg = XBot::ConfigOptionsFromParamServer();
+    std::string URDF_PATH, SRDF_PATH;
+    nodeHandle.getParam("/urdf_path", URDF_PATH);
+    nodeHandle.getParam("/srdf_path", SRDF_PATH);
+    // auto cfg = XBot::ConfigOptionsFromParamServer();
+
     // an option structure which is needed to make a model
-    // XBot::ConfigOptions xbot_cfg;
-    // // set the urdf and srdf path..
-    // xbot_cfg.set_urdf_path(URDF_PATH);
-    // xbot_cfg.set_srdf_path(SRDF_PATH);
-    // // the following call is needed to generate some default joint IDs
-    // xbot_cfg.generate_jidmap();
-    // // some additional parameters..
-    // xbot_cfg.set_parameter("is_model_floating_base", true);
-    // xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+    XBot::ConfigOptions xbot_cfg;
+    // set the urdf and srdf path..
+    xbot_cfg.set_urdf_path(URDF_PATH);
+    xbot_cfg.set_srdf_path(SRDF_PATH);
+    // the following call is needed to generate some default joint IDs
+    xbot_cfg.generate_jidmap();
+    // some additional parameters..
+    xbot_cfg.set_parameter("is_model_floating_base", true);
+    xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
 
     // and we can make the model class
-    auto model = XBot::ModelInterface::getModel(cfg);
-    auto robot = XBot::RobotInterface::getRobot(cfg);
+    auto model = XBot::ModelInterface::getModel(xbot_cfg);
+    // auto robot = XBot::RobotInterface::getRobot(xbot_cfg);
     // initialize to a homing configuration
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
@@ -185,11 +186,11 @@ const std::string robotName = "centauro";
 
     while (ros::ok())
     {
-        while (!start_walking_bool)
-        {
-            ros::spinOnce();
-            r.sleep();
-        }
+        // while (!start_walking_bool)
+        // {
+        //     ros::spinOnce();
+        //     r.sleep();
+        // }
 
         if (leg_state == 1)
         {
@@ -201,6 +202,11 @@ const std::string robotName = "centauro";
                 com_shift_y = leg4_pos[1] - com_pos[1];
                 com_shift_x = com_shift_x / seg_num;
                 com_shift_y = com_shift_y / seg_num;
+
+                ROS_INFO_STREAM("com_shift_x");
+                ROS_INFO_STREAM(com_shift_x);
+                ROS_INFO_STREAM("com_shift_y");
+                ROS_INFO_STREAM(com_shift_x);
             }
             
             if (current_state1 == 0)
@@ -418,8 +424,8 @@ const std::string robotName = "centauro";
             model->setJointVelocity(qdot);
             model->update();
 
-            robot->setPositionReference(q.tail(robot->getJointNum()));
-            robot->move();
+            // robot->setPositionReference(q.tail(robot->getJointNum()));
+            // robot->move();
 
             time += dt;
 

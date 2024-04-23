@@ -18,6 +18,11 @@
   <param name="problem_description"
           textfile="$(find cartesian_walk)/config/cartesio_stack.yaml"/> 
 
+  <param name="urdf_path"
+         value="$(find centauro_urdf)/urdf/centauro.urdf"/>
+  <param name="srdf_path"
+        value="$(find centauro_srdf)/srdf/centauro.srdf"/>
+
 
   <node pkg="cartesian_walk" name="cartesian_walk" type="cartesian_walk_node" output="screen"/>
 
