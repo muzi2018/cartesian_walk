@@ -193,12 +193,12 @@ const std::string robotName = "centauro";
 
         if (leg_state == 1)
         {
-            if (i == 0) // update com position and com shift for balance
+            if (i == 1) // update com position and com shift for balance
             {
                 model->getCOM(com_pos);
                 model->getPointPosition(leg4_frame, Eigen::Vector3d::Zero(),leg4_pos); 
-                com_shift_x = leg4_pos[0] - com_pos[0];
-                com_shift_y = leg4_pos[1] - com_pos[1];
+                com_shift_x = (leg4_pos[0] - com_pos[0])/5;
+                com_shift_y = (leg4_pos[1] - com_pos[1])/5;
                 com_shift_x = com_shift_x / seg_num;
                 com_shift_y = com_shift_y / seg_num;
             }
@@ -247,7 +247,7 @@ const std::string robotName = "centauro";
                         current_state1=0;
 
                     }else if (i == seg_num+1){
-                        i = 0;
+                        i = 1;
                         leg_state++;
                     }
                 }
@@ -260,7 +260,17 @@ const std::string robotName = "centauro";
 
         if (leg_state == 2)
         {
-            
+            if (i == 1) // update com position and com shift for balance
+            {
+                model->getCOM(com_pos);
+                model->getPointPosition(leg3_frame, Eigen::Vector3d::Zero(),leg3_pos); 
+                com_shift_x = (leg3_pos[0] - com_pos[0])/5;
+                com_shift_y = (leg3_pos[1] - com_pos[1])/5;
+                com_shift_x = com_shift_x / seg_num;
+                com_shift_y = com_shift_y / seg_num;
+
+            }
+
             if (current_state2 == 0)
             {
                 x = seg_dis;
@@ -268,6 +278,12 @@ const std::string robotName = "centauro";
                 leg2_cartesian->getPoseReference(Leg2_T_ref);
                 Leg2_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
                 leg2_cartesian->setPoseTarget(Leg2_T_ref, seg_time);
+
+                // com trajectory
+                com_cartesian->getPoseReference(Com_T_ref);
+                Com_T_ref.pretranslate(Eigen::Vector3d(com_shift_x,com_shift_y,0));
+                com_cartesian->setPoseTarget(Com_T_ref, seg_time);
+
                 current_state2++;
                 i++;
             }
@@ -299,7 +315,7 @@ const std::string robotName = "centauro";
 
                     }else if (i == seg_num+1)
                     {
-                        i=0;
+                        i=1;
                         leg_state++;
                     }
                 }
@@ -311,7 +327,16 @@ const std::string robotName = "centauro";
 
         if (leg_state == 3)
         {
-            
+            if (i == 1) // update com position and com shift for balance
+            {
+                model->getCOM(com_pos);
+                model->getPointPosition(leg2_frame, Eigen::Vector3d::Zero(),leg2_pos); 
+                com_shift_x = (leg2_pos[0] - com_pos[0])/5;
+                com_shift_y = (leg2_pos[1] - com_pos[1])/5;
+                com_shift_x = com_shift_x / seg_num;
+                com_shift_y = com_shift_y / seg_num;
+            }
+
             if (current_state3 == 0)
             {
                 x = seg_dis;
@@ -319,6 +344,12 @@ const std::string robotName = "centauro";
                 leg3_cartesian->getPoseReference(Leg3_T_ref);
                 Leg3_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
                 leg3_cartesian->setPoseTarget(Leg3_T_ref, seg_time);
+
+                // com trajectory
+                com_cartesian->getPoseReference(Com_T_ref);
+                Com_T_ref.pretranslate(Eigen::Vector3d(com_shift_x,com_shift_y,0));
+                com_cartesian->setPoseTarget(Com_T_ref, seg_time);
+
                 current_state3++;
                 i++;
             }
@@ -350,7 +381,7 @@ const std::string robotName = "centauro";
 
                     }else if (i == seg_num+1)
                     {
-                        i=0;
+                        i=1;
                         leg_state++;
                     }
                 }
@@ -362,7 +393,16 @@ const std::string robotName = "centauro";
 
         if (leg_state == 4)
         {
-            
+            if (i == 1) // update com position and com shift for balance
+            {
+                model->getCOM(com_pos);
+                model->getPointPosition(leg1_frame, Eigen::Vector3d::Zero(),leg1_pos); 
+                com_shift_x = (leg1_pos[0] - com_pos[0])/5;
+                com_shift_y = (leg1_pos[1] - com_pos[1])/5;
+                com_shift_x = com_shift_x / seg_num;
+                com_shift_y = com_shift_y / seg_num;
+            }
+
             if (current_state4 == 0)
             {
                 x = seg_dis;
@@ -370,6 +410,15 @@ const std::string robotName = "centauro";
                 leg4_cartesian->getPoseReference(Leg4_T_ref);
                 Leg4_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
                 leg4_cartesian->setPoseTarget(Leg4_T_ref, seg_time);
+
+                // com trajectory
+                com_cartesian->getPoseReference(Com_T_ref);
+                Com_T_ref.pretranslate(Eigen::Vector3d(com_shift_x,com_shift_y,0));
+                com_cartesian->setPoseTarget(Com_T_ref, seg_time);
+
+                model->getCOM(com_pos);
+                ROS_INFO_STREAM(com_pos);
+
                 current_state4++;
                 i++;
             }
@@ -400,7 +449,7 @@ const std::string robotName = "centauro";
 
                     }else if (i == seg_num+1)
                     {
-                        i=0;
+                        i=1;
                         leg_state=1;
                     }
                 }
