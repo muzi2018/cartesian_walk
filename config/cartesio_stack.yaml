@@ -31,7 +31,7 @@ Wheel4:
 
 Com:
     type: "Com"
-    indices: [0, 1, 2]
+    indices: [0, 1, 5]
 
 Postural:
     type: "Postural"
