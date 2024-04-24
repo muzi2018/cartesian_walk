@@ -170,14 +170,15 @@ const std::string robotName = "centauro";
     
     /** task*/
     int current_state1 = 0;
+    int current_state2 = 0;
+    int current_state3 = 0;
+    int current_state4 = 0;
+
+
     bool state1_support = false;
     bool state2_support = false;
     bool state3_support = false;
     bool state4_support = false;
-
-    int current_state2 = 0;
-    int current_state3 = 0;
-    int current_state4 = 0;
 
     int i=1; // mpc step index 
     double long_x = 0.1; // step long distance
@@ -299,48 +300,99 @@ const std::string robotName = "centauro";
 
         if (leg_state == 2)
         {
-           
-            if (current_state2 == 0)
-            {
-                x = 0;
-                z = leg_height*sin(3.14*i/seg_num)-leg_height*sin(3.14*(i-1)/seg_num);
-                leg2_cartesian->getPoseReference(Leg2_T_ref);
-                Leg2_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
-                leg2_cartesian->setPoseTarget(Leg2_T_ref, seg_time);
-
-            
-                current_state2++;
-                i++;
-            }
-            if(current_state2 == 1)
-            {
-                if (leg2_cartesian->getTaskState() == State::Reaching)
+           if (!state2_support)
+           {
+                if (current_state2 == 0) // setting com ref within support area 
                 {
+                    model->getCOM(com_pos);
+                    model->getPointPosition(leg1_frame, Eigen::Vector3d::Zero(),leg1_pos);
+                    model->getPointPosition(leg3_frame, Eigen::Vector3d::Zero(),leg3_pos);
+                    model->getPointPosition(leg4_frame, Eigen::Vector3d::Zero(),leg4_pos); 
+                    leg_mid = ( leg1_pos + leg3_pos + leg4_pos)/3;
+                    com_shift_x = (leg_mid[0] - com_pos[0]);
+                    com_shift_y = (leg_mid[1] - com_pos[1]);
+                    com_shift_x = com_shift_x / seg_num;
+                    com_shift_y = com_shift_y / seg_num;
+
+                    // com trajectory
+                    com_cartesian->getPoseReference(Com_T_ref);
+                    Com_T_ref.pretranslate(Eigen::Vector3d(com_shift_x,com_shift_y,0));
+                    com_cartesian->setPoseTarget(Com_T_ref, seg_time);
+
+                    current_state2++;
+                    i++;
+                }
+                if (current_state2 == 1)
+                {
+                    if (com_cartesian->getTaskState() == State::Reaching)
                     {
-                        // std::cout << "Motion started!" << std::endl;
                         current_state2++;
                     }
+                    
                 }
-
-            }
-            if(current_state2 == 2) // here we wait for it to be completed
-            {
-                if(leg2_cartesian->getTaskState() == State::Online)
+                if (current_state2 == 2)
                 {
-                    Eigen::Affine3d T;
-                    leg2_cartesian->getCurrentPose(T);
-
-                    if (i != seg_num+1)
+                    if (com_cartesian->getTaskState() == State::Online)
                     {
-                        current_state2=0;
-
-                    }else if (i == seg_num+1)
-                    {
-                        i=1;
-                        leg_state++;
+                        if (i != seg_num + 1)
+                        {
+                            current_state2 = 0;
+                        }else if (i == seg_num + 1)
+                        {
+                            i = 1;
+                            current_state2 = 0;
+                            state2_support = true;
+                        }
                     }
                 }
-            }
+
+           }else if (state2_support)
+           {
+                if (current_state2 == 0)
+                {
+                    x = 0;
+                    z = leg_height*sin(3.14*i/seg_num)-leg_height*sin(3.14*(i-1)/seg_num);
+                    leg2_cartesian->getPoseReference(Leg2_T_ref);
+                    Leg2_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
+                    leg2_cartesian->setPoseTarget(Leg2_T_ref, seg_time);
+
+                
+                    current_state2++;
+                    i++;
+                }
+                if(current_state2 == 1)
+                {
+                    if (leg2_cartesian->getTaskState() == State::Reaching)
+                    {
+                        {
+                            // std::cout << "Motion started!" << std::endl;
+                            current_state2++;
+                        }
+                    }
+
+                }
+                if(current_state2 == 2) // here we wait for it to be completed
+                {
+                    if(leg2_cartesian->getTaskState() == State::Online)
+                    {
+                        Eigen::Affine3d T;
+                        leg2_cartesian->getCurrentPose(T);
+
+                        if (i != seg_num+1)
+                        {
+                            current_state2=0;
+
+                        }else if (i == seg_num+1)
+                        {
+                            i=1;
+                            leg_state++;
+                        }
+                    }
+                }
+
+           }
+           
+           
         }
 
 
