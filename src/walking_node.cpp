@@ -253,7 +253,7 @@ const std::string robotName = "centauro";
                 if (current_state1 == 0)
                 {
                     // leg trajectory
-                    x = 0;
+                    x = seg_dis;
                     z = leg_height*sin(3.14*i/seg_num)-leg_height*sin(3.14*(i-1)/seg_num);
                     leg1_cartesian->getPoseReference(Leg1_T_ref);
                     Leg1_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
@@ -350,7 +350,7 @@ const std::string robotName = "centauro";
            {
                 if (current_state2 == 0)
                 {
-                    x = 0;
+                    x = seg_dis;
                     z = leg_height*sin(3.14*i/seg_num)-leg_height*sin(3.14*(i-1)/seg_num);
                     leg2_cartesian->getPoseReference(Leg2_T_ref);
                     Leg2_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
@@ -449,7 +449,7 @@ const std::string robotName = "centauro";
             {
                 if (current_state3 == 0)
                 {
-                    x = 0;
+                    x = seg_dis;
                     z = leg_height*sin(3.14*i/seg_num)-leg_height*sin(3.14*(i-1)/seg_num);
                     leg3_cartesian->getPoseReference(Leg3_T_ref);
                     Leg3_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
@@ -551,7 +551,7 @@ const std::string robotName = "centauro";
             {
                 if (current_state4 == 0)
                 {
-                    x = 0;
+                    x = seg_dis;
                     z = leg_height*sin(3.14*i/seg_num)-leg_height*sin(3.14*(i-1)/seg_num);
                     leg4_cartesian->getPoseReference(Leg4_T_ref);
                     Leg4_T_ref.pretranslate(Eigen::Vector3d(x,0,z));
@@ -590,6 +590,14 @@ const std::string robotName = "centauro";
                         {
                             i=1;
                             leg_state=1;
+                            current_state1 = 0;
+                            current_state2 = 0;
+                            current_state3 = 0;
+                            current_state4 = 0;
+                            state1_support = 0;
+                            state2_support = 0;
+                            state3_support = 0;
+                            state4_support = 0;
                         }
                     }
                 }
