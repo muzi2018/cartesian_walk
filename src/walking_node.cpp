@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nodeHandle("");
 
     // Create a Buffer and a TransformListener
-    // tf2_ros::Buffer tfBuffer;
-    // tf2_ros::TransformListener tfListener(tfBuffer);
+    tf2_ros::Buffer tfBuffer;
+    tf2_ros::TransformListener tfListener(tfBuffer);
 
 
     // Get node parameters
@@ -70,6 +70,7 @@ int main(int argc, char **argv)
     model->update();
     XBot::Cartesian::Utils::RobotStatePublisher rspub (model);
 
+    
 
     // before constructing the problem description, let us build a
     // context object which stores some information, such as
@@ -210,6 +211,7 @@ int main(int argc, char **argv)
     // D435_head_camera_color_optical_frame
     // tag_0
 
+    geometry_msgs::TransformStamped tag_base_T; 
     while (ros::ok())
     {
         while (!start_walking_bool)
@@ -219,13 +221,27 @@ int main(int argc, char **argv)
         }
 
 
+        // Define the parent and child frame names
+        std::string parent_frame = "base_link";
+        std::string child_frame = "tag_0";
+        // Query the transformation
+        try {
+            tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
+            ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
+            ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
+            ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+        } catch (tf2::TransformException &ex) {
+            ROS_ERROR("TF Exception: %s", ex.what());
+        }
+        auto tag_base_p = tag_base_T.transform.translation;
+
 
         if (current_state1 == 0) // setting com ref within support area 
         {
             // com trajectory
             car_cartesian->getPoseReference(Com_T_ref);
-            Com_T_ref.pretranslate(Eigen::Vector3d(1, 0, 0));
-            car_cartesian->setPoseTarget(Com_T_ref, 1);
+            Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x, tag_base_p.y, 0));
+            car_cartesian->setPoseTarget(Com_T_ref, 2);
 
             current_state1++;
             i++;
@@ -258,6 +274,7 @@ int main(int argc, char **argv)
             model->update();
 
             robot->setPositionReference(q.tail(robot->getJointNum()));
+            robot->setVelocityReference(qdot.tail(robot->getJointNum()));
             robot->move();
 
             time += dt;
