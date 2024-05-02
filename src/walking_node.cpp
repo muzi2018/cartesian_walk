@@ -39,8 +39,8 @@ int main(int argc, char **argv)
     ros::NodeHandle nodeHandle("");
 
     // Create a Buffer and a TransformListener
-    tf2_ros::Buffer tfBuffer;
-    tf2_ros::TransformListener tfListener(tfBuffer);
+    // tf2_ros::Buffer tfBuffer;
+    // tf2_ros::TransformListener tfListener(tfBuffer);
 
 
     // Get node parameters
@@ -219,17 +219,21 @@ int main(int argc, char **argv)
 
 
         // Define the parent and child frame names
-        std::string parent_frame = "D435_head_camera_color_optical_frame";
-        std::string child_frame = "tag_0";
-        // Query the transformation
-        try {
-            geometry_msgs::TransformStamped transformStamped = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
-            ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
-            ROS_INFO("Translation: x=%f, y=%f, z=%f", transformStamped.transform.translation.x, transformStamped.transform.translation.y, transformStamped.transform.translation.z);
-            ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", transformStamped.transform.rotation.w, transformStamped.transform.rotation.x, transformStamped.transform.rotation.y, transformStamped.transform.rotation.z);
-        } catch (tf2::TransformException &ex) {
-            ROS_ERROR("TF Exception: %s", ex.what());
-        }
+        // std::string parent_frame = "D435_head_camera_color_optical_frame";
+        // std::string child_frame = "tag_0";
+        // // Query the transformation
+        // try {
+        //     geometry_msgs::TransformStamped transformStamped = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
+        //     ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
+        //     ROS_INFO("Translation: x=%f, y=%f, z=%f", transformStamped.transform.translation.x, transformStamped.transform.translation.y, transformStamped.transform.translation.z);
+        //     ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", transformStamped.transform.rotation.w, transformStamped.transform.rotation.x, transformStamped.transform.rotation.y, transformStamped.transform.rotation.z);
+        // } catch (tf2::TransformException &ex) {
+        //     ROS_ERROR("TF Exception: %s", ex.what());
+        // }
+
+
+
+
 
 
 
