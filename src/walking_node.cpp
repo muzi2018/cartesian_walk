@@ -199,6 +199,7 @@ int main(int argc, char **argv)
 
     int i=1; // mpc step index 
     double long_x = 0.1; // step long distance
+    double long_y = 0;
     double leg_height = 0.1; // step height
     double seg_num = 100; // mpc segment number
     double seg_time = phase_time / seg_num; // mpc segment duration
@@ -219,6 +220,8 @@ int main(int argc, char **argv)
     std_msgs::Float64 msg_xc;
 
     geometry_msgs::TransformStamped tag_base_T; 
+
+    bool reach_goal = false;
     while (ros::ok())
     {
         while (!start_walking_bool)
@@ -234,9 +237,9 @@ int main(int argc, char **argv)
         // Query the transformation
         try {
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
-            ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
-            ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
-            ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+            // ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
+            // ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
+            // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
         } catch (tf2::TransformException &ex) {
             ROS_ERROR("TF Exception: %s", ex.what());
         }
@@ -253,29 +256,62 @@ int main(int argc, char **argv)
         pub_x_c.publish(msg_xc);
         
         // ROS_INFO("Tracking Error: %d", msg_x);
-
-        if (current_state1 == 0) // setting com ref within support area 
-        {
-            // com trajectory
-            car_cartesian->getPoseReference(Com_T_ref);
-            Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x, tag_base_p.y, 0));
-            car_cartesian->setPoseTarget(Com_T_ref, 2);
-
-            current_state1++;
-            i++;
-        }
-        if (current_state1 == 1)
-        {
-            if (car_cartesian->getTaskState() == State::Reaching)
+        double x_e = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
+        double y_e = tag_base_T.transform.translation.y * tag_base_T.transform.translation.y;
+        double z_e = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
+        double e = sqrt(x_e + y_e);
+        std::cout << "e" << e << std::endl;
+        if (e >= 0.6){
+            if (current_state1 == 0) // setting com ref within support area 
             {
+                // com trajectory
+                car_cartesian->getPoseReference(Com_T_ref);
+                Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x/ seg_num, tag_base_p.y/ seg_num, 0));
+                car_cartesian->setPoseTarget(Com_T_ref, seg_time);
+
                 current_state1++;
+                i++;
             }
-            
-        }
-        if (current_state1 == 2)
+            if (current_state1 == 1)
+            {
+                if (car_cartesian->getTaskState() == State::Reaching)
+                {
+                    current_state1++;
+                }
+                
+            }
+            if (current_state1 == 2)
+            {
+                if(car_cartesian->getTaskState() == State::Online)
+                {
+                    Eigen::Affine3d T;
+                    car_cartesian->getCurrentPose(T);
+
+                    // std::cout << "Motion completed, final error is " <<
+                    //             (T.inverse()*Com_T_ref).translation().norm() << std::endl;
+                    auto error_ = (T.inverse()*Com_T_ref).translation().norm();
+                    if (i != seg_num+1 )
+                    {
+                        current_state1=0;
+
+                    }else if ( i == seg_num+1){
+                        i = 1;
+                        // current_state1++;
+                    }
+                }
+            }
+        }else if (e < 0.6)
         {
-            current_state1++;
+            current_state1 = 10;
+            reach_goal = true;
         }
+        
+        if (reach_goal && e >= 1)
+        {
+           current_state1 = 0;
+        }
+        
+
         
 
 
