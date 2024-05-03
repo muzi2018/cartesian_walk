@@ -2,6 +2,7 @@
 #include <ros/init.h>
 #include <ros/package.h>
 #include <ros/ros.h>
+#include <std_msgs/Float64.h>
 #include <XBotInterface/RobotInterface.h>
 #include <XBotInterface/ModelInterface.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
@@ -17,7 +18,6 @@
 
 
 #include <Eigen/Dense>
-
 #include <std_srvs/Empty.h>
 
 using namespace XBot::Cartesian;
@@ -37,6 +37,7 @@ int main(int argc, char **argv)
     // Initialize ros node
     ros::init(argc, argv, robotName);
     ros::NodeHandle nodeHandle("");
+
 
     // Create a Buffer and a TransformListener
     tf2_ros::Buffer tfBuffer;
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
                                                        );
 
     
-
+    
 
 
     Eigen::VectorXd q, qdot, qddot;
@@ -211,6 +212,12 @@ int main(int argc, char **argv)
     // D435_head_camera_color_optical_frame
     // tag_0
 
+    ros::Publisher pub_x_d = nodeHandle.advertise<std_msgs::Float64>("x_desire_p", 1000);
+    std_msgs::Float64 msg_xd;
+
+    ros::Publisher pub_x_c = nodeHandle.advertise<std_msgs::Float64>("x_actual_c", 1000);
+    std_msgs::Float64 msg_xc;
+
     geometry_msgs::TransformStamped tag_base_T; 
     while (ros::ok())
     {
@@ -233,8 +240,19 @@ int main(int argc, char **argv)
         } catch (tf2::TransformException &ex) {
             ROS_ERROR("TF Exception: %s", ex.what());
         }
-        auto tag_base_p = tag_base_T.transform.translation;
 
+        auto tag_base_p = tag_base_T.transform.translation;
+        
+        Eigen::Vector3d base_pos;
+        const std::string base_frame = "base_link";
+        model->getPointPosition(base_frame, Eigen::Vector3d::Zero(),base_pos); 
+        msg_xd.data = tag_base_p.x;
+        pub_x_d.publish(msg_xd);
+
+        msg_xc.data = base_pos[0];
+        pub_x_c.publish(msg_xc);
+        
+        // ROS_INFO("Tracking Error: %d", msg_x);
 
         if (current_state1 == 0) // setting com ref within support area 
         {
