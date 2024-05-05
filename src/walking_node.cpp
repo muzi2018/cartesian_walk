@@ -206,6 +206,7 @@ int main(int argc, char **argv)
     double seg_dis = long_x / seg_num; // each mpc step long
 
     double com_shift_x, com_shift_y;
+    double det_shift_x = 0.2, det_shift_y = 0.2;
 
     ros::Rate r(100);
     ros::ServiceServer service = nodeHandle.advertiseService("start_walking", start_walking);
@@ -213,14 +214,19 @@ int main(int argc, char **argv)
     // D435_head_camera_color_optical_frame
     // tag_0
 
-    ros::Publisher pub_x_d = nodeHandle.advertise<std_msgs::Float64>("x_desire_p", 1000);
+    ros::Publisher pub_x_d = nodeHandle.advertise<std_msgs::Float64>("x_desire", 1000);
     std_msgs::Float64 msg_xd;
-
-    ros::Publisher pub_x_c = nodeHandle.advertise<std_msgs::Float64>("x_actual_c", 1000);
+    ros::Publisher pub_x_c = nodeHandle.advertise<std_msgs::Float64>("x_actual", 1000);
     std_msgs::Float64 msg_xc;
 
-    geometry_msgs::TransformStamped tag_base_T; 
+    ros::Publisher pub_y_d = nodeHandle.advertise<std_msgs::Float64>("y_desire", 1000);
+    std_msgs::Float64 msg_yd;
+    ros::Publisher pub_y_c = nodeHandle.advertise<std_msgs::Float64>("y_actual", 1000);
+    std_msgs::Float64 msg_yc;
 
+
+    geometry_msgs::TransformStamped tag_base_T; 
+    bool detection = true;
     bool reach_goal = false;
     while (ros::ok())
     {
@@ -237,37 +243,58 @@ int main(int argc, char **argv)
         // Query the transformation
         try {
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
-            // ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
-            // ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
-            // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+            
+            ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
+            ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
+            ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
         } catch (tf2::TransformException &ex) {
-            ROS_ERROR("TF Exception: %s", ex.what());
+            // ROS_ERROR("TF Exception: %s", ex.what());
+            detection = false;
         }
 
         auto tag_base_p = tag_base_T.transform.translation;
+        tag_base_p.x = tag_base_p.x - det_shift_x ;
+        tag_base_p.y = tag_base_p.y - det_shift_y ;
         
         Eigen::Vector3d base_pos;
+        Eigen::Vector3d base_pos_d;
+        Eigen::Vector3d target_in_base;
+        base_pos_d << tag_base_T.transform.translation.x, tag_base_T.transform.translation.y,tag_base_T.transform.translation.z; 
         const std::string base_frame = "base_link";
-        model->getPointPosition(base_frame, Eigen::Vector3d::Zero(),base_pos); 
-        msg_xd.data = tag_base_p.x;
-        pub_x_d.publish(msg_xd);
+        
+        model->getPointPosition(base_frame, Eigen::Vector3d::Zero(), base_pos); 
+        model->getPointPosition(base_frame, target_in_base, base_pos_d); 
 
+        msg_xd.data = base_pos_d[0];
+        pub_x_d.publish(msg_xd);
         msg_xc.data = base_pos[0];
         pub_x_c.publish(msg_xc);
         
+        msg_yd.data = base_pos_d[1];
+        pub_y_d.publish(msg_yd);
+        msg_yc.data = base_pos[1];
+        pub_y_c.publish(msg_yc);
+
+
+
+
+
+
         // ROS_INFO("Tracking Error: %d", msg_x);
         double x_e = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
         double y_e = tag_base_T.transform.translation.y * tag_base_T.transform.translation.y;
         double z_e = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
         double e = sqrt(x_e + y_e);
         std::cout << "e" << e << std::endl;
-        if (e >= 0.6){
+        if (e >= 0.6 && detection){
             if (current_state1 == 0) // setting com ref within support area 
             {
                 // com trajectory
                 car_cartesian->getPoseReference(Com_T_ref);
                 Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x/ seg_num, tag_base_p.y/ seg_num, 0));
                 car_cartesian->setPoseTarget(Com_T_ref, seg_time);
+
+                
 
                 current_state1++;
                 i++;
@@ -300,7 +327,7 @@ int main(int argc, char **argv)
                     }
                 }
             }
-        }else if (e < 0.6)
+        }else if (e < 0.6 || !detection)
         {
             current_state1 = 10;
             reach_goal = true;
@@ -330,7 +357,7 @@ int main(int argc, char **argv)
             robot->setPositionReference(q.tail(robot->getJointNum()));
             robot->setVelocityReference(qdot.tail(robot->getJointNum()));
             robot->move();
-
+            
             time += dt;
 
 

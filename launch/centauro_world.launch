@@ -4,6 +4,11 @@
     <!-- visualization config -->
   <arg name="rviz"               default="true" />
 
+
+  <!-- <include file="$(find centauro_gazebo)/launch/centauro_world.launch"/> -->
+
+
+
   <!-- rviz -->
   <group if="$(arg rviz)">
     <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
