@@ -228,6 +228,8 @@ int main(int argc, char **argv)
     geometry_msgs::TransformStamped tag_base_T; 
     bool detection = true;
     bool reach_goal = false;
+    // bool only_walk = true;
+    bool only_walk = false;
     while (ros::ok())
     {
         while (!start_walking_bool)
@@ -285,11 +287,19 @@ int main(int argc, char **argv)
         double y_e = tag_base_T.transform.translation.y * tag_base_T.transform.translation.y;
         double z_e = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
         double e = sqrt(x_e + y_e);
-        std::cout << "e" << e << std::endl;
-        if (e >= 0.6 && detection){
+        // std::cout << "e" << e << std::endl;
+        if ((e >= 0.6 && detection)
+            || only_walk){
             if (current_state1 == 0) // setting com ref within support area 
             {
-                // com trajectory
+                
+                if (only_walk)
+                {
+                    tag_base_p.x = 2 ;
+                    tag_base_p.y = 0 ;
+                }
+                
+
                 car_cartesian->getPoseReference(Com_T_ref);
                 Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x/ seg_num, tag_base_p.y/ seg_num, 0));
                 car_cartesian->setPoseTarget(Com_T_ref, seg_time);
@@ -337,7 +347,12 @@ int main(int argc, char **argv)
         {
            current_state1 = 0;
         }
-        
+        if (only_walk && base_pos[0] >= 2)
+        {
+            current_state1 = 10;
+            reach_goal = true;
+        }
+
 
         
 
