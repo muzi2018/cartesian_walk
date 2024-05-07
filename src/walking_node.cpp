@@ -304,8 +304,6 @@ int main(int argc, char **argv)
                 Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x/ seg_num, tag_base_p.y/ seg_num, 0));
                 car_cartesian->setPoseTarget(Com_T_ref, seg_time);
 
-                
-
                 current_state1++;
                 i++;
             }
