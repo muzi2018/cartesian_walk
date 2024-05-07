@@ -8,9 +8,14 @@ project(cartesian_walk)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-                roscpp)
+                roscpp
+                rospy
+                std_msgs
+                message_generation
+                apriltag_ros)
 find_package(cartesian_interface REQUIRED)
 find_package(XBotInterface REQUIRED)
+find_package(apriltag REQUIRED)
 
 
 ## System dependencies are found with CMake's conventions
@@ -49,8 +54,7 @@ find_package(XBotInterface REQUIRED)
 ## Generate messages in the 'msg' folder
 # add_message_files(
 #   FILES
-#   Message1.msg
-#   Message2.msg
+#   AprilTagDetectionArray.msg
 # )
 
 ## Generate services in the 'srv' folder
@@ -105,7 +109,7 @@ find_package(XBotInterface REQUIRED)
 catkin_package(
 INCLUDE_DIRS 
  LIBRARIES 
- CATKIN_DEPENDS roscpp
+ CATKIN_DEPENDS roscpp message_runtime
  DEPENDS 
 )
 

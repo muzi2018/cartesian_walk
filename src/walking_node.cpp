@@ -15,6 +15,7 @@
 #include <tf2_ros/buffer.h>
 #include <geometry_msgs/PoseStamped.h>
 #include "geometry_msgs/TransformStamped.h"
+#include "apriltag_ros/AprilTagDetectionArray.h"
 
 
 #include <Eigen/Dense>
@@ -30,6 +31,30 @@ bool start_walking(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res
     start_walking_bool = !start_walking_bool;
     return true;
 };
+
+// void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
+// {
+//     // Process the detected tags here
+
+//     // Access individual detections
+//     try
+//     {
+//         std::cout << "Detected tag ID: " << msg->detections[0].id[0] << std::endl;
+//     }
+//     catch(const std::exception& e)
+//     {
+//         std::cerr << e.what() << '\n';
+//     }
+    
+    
+//     // // Access pose information
+//     // std::cout << "Pose: " << detection.pose.pose.position.x << ", " << detection.pose.pose.position.y << ", " << detection.pose.pose.position.z << std::endl;
+// }
+
+
+
+
+
 
 int main(int argc, char **argv)
 {
@@ -96,6 +121,7 @@ int main(int argc, char **argv)
                                                        );
 
     
+    // ros::Subscriber sub = nodeHandle.subscribe("/tag_detections", 1000, tagDetectionsCallback);
     
 
 
@@ -201,12 +227,12 @@ int main(int argc, char **argv)
     double long_x = 0.1; // step long distance
     double long_y = 0;
     double leg_height = 0.1; // step height
-    double seg_num = 100; // mpc segment number
+    double seg_num = 1000; // mpc segment number
     double seg_time = phase_time / seg_num; // mpc segment duration
     double seg_dis = long_x / seg_num; // each mpc step long
 
     double com_shift_x, com_shift_y;
-    double det_shift_x = 0.2, det_shift_y = 0.2;
+    double det_shift_x = 0.5, det_shift_y = 0.5;
 
     ros::Rate r(100);
     ros::ServiceServer service = nodeHandle.advertiseService("start_walking", start_walking);
@@ -224,6 +250,7 @@ int main(int argc, char **argv)
     ros::Publisher pub_y_c = nodeHandle.advertise<std_msgs::Float64>("y_actual", 1000);
     std_msgs::Float64 msg_yc;
 
+    
 
     geometry_msgs::TransformStamped tag_base_T; 
     bool detection = true;
@@ -244,13 +271,19 @@ int main(int argc, char **argv)
         try {
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
             
-            ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
-            ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
-            ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
-        } catch (tf2::TransformException &ex) {
+            // ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
+            // ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
+            // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+            detection = true;
+            
+        } catch (tf2::ConnectivityException &ex) {
             // ROS_ERROR("TF Exception: %s", ex.what());
             detection = false;
+            ROS_INFO("detection: %d ", detection);
         }
+
+
+
 
         auto tag_base_p = tag_base_T.transform.translation;
         tag_base_p.x = tag_base_p.x - det_shift_x ;
@@ -284,81 +317,55 @@ int main(int argc, char **argv)
         double x_e = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
         double y_e = tag_base_T.transform.translation.y * tag_base_T.transform.translation.y;
         double z_e = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
+
+        // ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
+        // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+
         double e = sqrt(x_e + y_e);
-        std::cout << "e" << e << std::endl;
-        if (e >= 0.6 && detection){
-            if (current_state1 == 0) // setting com ref within support area 
-            {
-                // com trajectory
-                car_cartesian->getPoseReference(Com_T_ref);
-                Com_T_ref.pretranslate(Eigen::Vector3d(tag_base_p.x/ seg_num, tag_base_p.y/ seg_num, 0));
-                car_cartesian->setPoseTarget(Com_T_ref, seg_time);
+        Eigen::Vector6d E;
+        double K = 0.6;
+        E[0] = K * tag_base_T.transform.translation.x;
+        E[1] = K * tag_base_T.transform.translation.y;
+        E[2] = 0;
 
-                
+        E[3] = 0;
+        E[4] = 0;
+        E[5] = 0;
+        E = K * E * e;
 
-                current_state1++;
-                i++;
-            }
-            if (current_state1 == 1)
-            {
-                if (car_cartesian->getTaskState() == State::Reaching)
-                {
-                    current_state1++;
-                }
-                
-            }
-            if (current_state1 == 2)
-            {
-                if(car_cartesian->getTaskState() == State::Online)
-                {
-                    Eigen::Affine3d T;
-                    car_cartesian->getCurrentPose(T);
+        Eigen::Vector6d E_Zero;
+        E_Zero.setZero();
+        // std::cout << "E_x" << std::endl << tag_base_T.transform.translation.x << std::endl;
+        // std::cout << "E_y" << std::endl << tag_base_T.transform.translation.y << std::endl;
+        // std::cout << "e" << std::endl << e << std::endl;
+        if (e >= 1.6 && detection){
+            car_cartesian->setVelocityReference(E);
 
-                    // std::cout << "Motion completed, final error is " <<
-                    //             (T.inverse()*Com_T_ref).translation().norm() << std::endl;
-                    auto error_ = (T.inverse()*Com_T_ref).translation().norm();
-                    if (i != seg_num+1 )
-                    {
-                        current_state1=0;
-
-                    }else if ( i == seg_num+1){
-                        i = 1;
-                        // current_state1++;
-                    }
-                }
-            }
-        }else if (e < 0.6 || !detection)
-        {
-            current_state1 = 10;
-            reach_goal = true;
+            // std::cout << "e : " << e << std::endl;
         }
         
-        if (reach_goal && e >= 1)
+        if (e < 1.6 || !detection)
         {
-           current_state1 = 0;
+            car_cartesian->setVelocityReference(E_Zero);
+            // std::cout << "e < 0.6 || !detection" << std::endl;
         }
         
-
-        
-
-
-
             // std::cout << "Motion started!" << std::endl;
-            solver->update(time, dt);
-            model->getJointPosition(q);
-            model->getJointVelocity(qdot);
-            model->getJointAcceleration(qddot);
-            q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
-            qdot += dt * qddot;
-            model->setJointPosition(q);
-            model->setJointVelocity(qdot);
-            model->update();
+        solver->update(time, dt);
+        model->getJointPosition(q);
+        model->getJointVelocity(qdot);
+        model->getJointAcceleration(qddot);
+        q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+        qdot += dt * qddot;
+        model->setJointPosition(q);
+        model->setJointVelocity(qdot);
+        model->update();
 
-            robot->setPositionReference(q.tail(robot->getJointNum()));
-            robot->setVelocityReference(qdot.tail(robot->getJointNum()));
-            robot->move();
-            
-            time += dt;
+        robot->setPositionReference(q.tail(robot->getJointNum()));
+        robot->setVelocityReference(qdot.tail(robot->getJointNum()));
+        robot->move();
+        
+        time += dt;
 
 
         rspub.publishTransforms(ros::Time::now(), "");

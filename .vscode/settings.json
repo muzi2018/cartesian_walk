@@ -85,6 +85,7 @@
         "variant": "cpp",
         "bit": "cpp",
         "core": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "*.msg": "cpp"
     }
 }

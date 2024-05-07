@@ -6,12 +6,12 @@
         "limitSymbolsToIncludedHeaders": false
       },
       "includePath": [
-        "/home/wang/forest/install/include/**",
+        "/home/wang/forest_ws/install/include/**",
         "/opt/xbot/include/**",
         "/opt/ros/noetic/include/**",
-        "/home/wang/forest/ros_src/iit-dagana-ros-pkg/dagana_gazebo/include/**",
-        "/home/wang/forest/install/share/realsense_gazebo_plugin/include/**",
-        "/usr/include/**"
+        "/home/wang/forest_ws/ros_src/iit-dagana-ros-pkg/dagana_gazebo/include/**",
+        "/home/wang/forest_ws/install/share/realsense_gazebo_plugin/include/**",
+        "/usr/include/**",
       ],
       "name": "ROS",
       "intelliSenseMode": "gcc-x64",

@@ -28,7 +28,7 @@ Gaze:
 Car:
     type: Cartesian
     distal_link: *local_frame
-    lambda: 0.1
+    lambda: 0.
 
 Steering_FL:
     type: CentauroSteering
