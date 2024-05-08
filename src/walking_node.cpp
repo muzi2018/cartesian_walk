@@ -8,17 +8,15 @@
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/utils/RobotStatePublisher.h>
 #include <RobotInterfaceROS/ConfigFromParam.h>
-
 #include <tf2/LinearMath/Transform.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Vector3.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <geometry_msgs/PoseStamped.h>
 #include "geometry_msgs/TransformStamped.h"
 #include "apriltag_ros/AprilTagDetectionArray.h"
-
 #include <tf/transform_datatypes.h>
-
 #include <Eigen/Dense>
 #include <std_srvs/Empty.h>
 
@@ -35,7 +33,7 @@ bool start_walking(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res
 
 void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
 {
-    std::cout << "msg->detections.size() = " << msg->detections.size() << std::endl;\
+    // std::cout << "msg->detections.size() = " << msg->detections.size() << std::endl;\
 
     if (msg->detections.size() > 0) {
         tagDetected = true;
@@ -43,12 +41,11 @@ void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr&
         tagDetected = false;
     }
 
-    if (tagDetected) {
-        ROS_INFO("A tag has been detected.");
-        // Perform actions based on the detection
-    } else {
-        ROS_INFO("No tags detected. tagDetected = %d", tagDetected);
-    }
+    // if (tagDetected) {
+    //     ROS_INFO("A tag has been detected.");
+    // } else {
+    //     ROS_INFO("No tags detected. tagDetected = %d", tagDetected);
+    // }
 
 }
 
@@ -164,18 +161,28 @@ int main(int argc, char **argv)
             double z_e = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
             double e = sqrt(x_e + y_e);
 
+            tf2::Quaternion q;
+            q.setW(tag_base_T.transform.rotation.w);
+            q.setX(tag_base_T.transform.rotation.x);
+            q.setY(tag_base_T.transform.rotation.y);
+            q.setZ(tag_base_T.transform.rotation.z);
+            double roll, pitch, yaw;
+            tf2::Matrix3x3 m(q);
+            m.getRPY(roll, pitch, yaw);
+
             /**
              * Velocity Controller
             */
             Eigen::Vector6d E;
-            double K = 0.6;
+            double K = 0.1;
             E[0] = K * tag_base_T.transform.translation.x;
             E[1] = K * tag_base_T.transform.translation.y;
             E[2] = 0;
             E[3] = 0;
             E[4] = 0;
-            E[5] = 0;
-            E = K * E * e;
+            E[5] = yaw + 1.6;
+            std::cout << "yaw_error = " << E[5] << std::endl;
+            // E = K * E * e;
             Eigen::Vector6d E_Zero;
             E_Zero.setZero();
 
