@@ -132,7 +132,12 @@ int main(int argc, char **argv)
     
 
     geometry_msgs::TransformStamped tag_base_T; 
-    
+    double roll_e, pitch_e, yaw_e;
+    Eigen::Vector6d E;
+    Eigen::Vector6d E_Zero;
+    E_Zero.setZero();
+    double K_x = 0.1, K_y = 0.1, K_yaw = 0.1;
+
     bool reach_goal = false;
     while (ros::ok())
     {
@@ -151,56 +156,69 @@ int main(int argc, char **argv)
 
         if (tagDetected)
         {
-            std::cout << "tagDetected = " << tagDetected << std::endl;
+            // std::cout << "tagDetected = " << tagDetected << std::endl;
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
             /**
              * Error Calculate
             */
-            double x_e = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
-            double y_e = tag_base_T.transform.translation.y * tag_base_T.transform.translation.y;
-            double z_e = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
-            double e = sqrt(x_e + y_e);
+            double x_e = tag_base_T.transform.translation.x;
+            double y_e = tag_base_T.transform.translation.y - 0.3;
+            double z_e = tag_base_T.transform.translation.z;
+
+            double x_ee = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
+            double y_ee = tag_base_T.transform.translation.y * tag_base_T.transform.translation.y;
+            double z_ee = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
+            double e = sqrt(x_ee + y_ee);
 
             tf2::Quaternion q;
             q.setW(tag_base_T.transform.rotation.w);
             q.setX(tag_base_T.transform.rotation.x);
             q.setY(tag_base_T.transform.rotation.y);
             q.setZ(tag_base_T.transform.rotation.z);
-            double roll, pitch, yaw;
+            
             tf2::Matrix3x3 m(q);
-            m.getRPY(roll, pitch, yaw);
-
+            m.getRPY(roll_e, pitch_e, yaw_e);
+            yaw_e = yaw_e + 1.6;
             /**
              * Velocity Controller
             */
-            Eigen::Vector6d E;
-            double K = 0.1;
-            E[0] = K * tag_base_T.transform.translation.x;
-            E[1] = K * tag_base_T.transform.translation.y;
+            
+            
+            E[0] = K_x * x_e;
+            E[1] = K_y * y_e;
             E[2] = 0;
             E[3] = 0;
             E[4] = 0;
-            E[5] = yaw + 1.6;
-            std::cout << "yaw_error = " << E[5] << std::endl;
+            E[5] = K_yaw * yaw_e;
+            // std::cout << "yaw_error = " << E[5] << std::endl;
             // E = K * E * e;
-            Eigen::Vector6d E_Zero;
-            E_Zero.setZero();
 
 
+            std::cout << "tag_base_T.transform.translation.x = " << tag_base_T.transform.translation.x << std::endl;
+            std::cout << "tag_base_T.transform.translation.y = " << tag_base_T.transform.translation.y << std::endl;
+            std::cout << "tag_base_T.transform.translation.z = " << tag_base_T.transform.translation.z << std::endl;
+            std::cout << "yaw = " << yaw_e << std::endl;
 
-            if (e >= 1)
-            {
+            if ((abs(x_e) > 1 || abs(y_e) > 0.05 || abs(yaw_e) > 0.1) && !reach_goal)
+            {                
+                
                 car_cartesian->setVelocityReference(E);
-            }else {
-                std::cout << "Reach goal" << std::endl;
-                car_cartesian->setVelocityReference(E_Zero);
+                car_cartesian->setVelocityLimits(-0.05, 0.05);
             }
+
+            if (abs(x_e) < 1 )
+            {
+                reach_goal = true;
+                car_cartesian->setVelocityReference(E_Zero);
+                car_cartesian->setVelocityLimits(-0.05, 0.05);
+            }else{
+                reach_goal = false;
+            }
+
         }
         if (!tagDetected){
-            std::cout << "tagDetected = " << tagDetected << std::endl;
-            Eigen::Vector6d E_Zero;
-            E_Zero.setZero();
             car_cartesian->setVelocityReference(E_Zero);
+            car_cartesian->setVelocityLimits(-0.05, 0.05);
         } 
 
         /**
