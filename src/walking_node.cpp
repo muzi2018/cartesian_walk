@@ -17,6 +17,7 @@
 #include "geometry_msgs/TransformStamped.h"
 #include "apriltag_ros/AprilTagDetectionArray.h"
 
+#include <tf/transform_datatypes.h>
 
 #include <Eigen/Dense>
 #include <std_srvs/Empty.h>
@@ -25,31 +26,34 @@ using namespace XBot::Cartesian;
 
 
 bool start_walking_bool = false;
-
+bool tagDetected = false;
 bool start_walking(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
     start_walking_bool = !start_walking_bool;
     return true;
 };
 
-// void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
-// {
-//     // Process the detected tags here
+void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg)
+{
 
-//     // Access individual detections
-//     try
-//     {
-//         std::cout << "Detected tag ID: " << msg->detections[0].id[0] << std::endl;
-//     }
-//     catch(const std::exception& e)
-//     {
-//         std::cerr << e.what() << '\n';
-//     }
     
-    
-//     // // Access pose information
-//     // std::cout << "Pose: " << detection.pose.pose.position.x << ", " << detection.pose.pose.position.y << ", " << detection.pose.pose.position.z << std::endl;
-// }
+
+    for (const auto& detection : msg->detections) {
+        // Check if the tag is detected
+        if (detection.id.size() > 0) {
+            tagDetected = true;
+            break; // Exit the loop once a tag is found
+        }
+    }
+
+    if (tagDetected) {
+        ROS_INFO("A tag has been detected.");
+        // Perform actions based on the detection
+    } else {
+        ROS_INFO("No tags detected.");
+    }
+
+}
 
 
 
@@ -121,7 +125,7 @@ int main(int argc, char **argv)
                                                        );
 
     
-    // ros::Subscriber sub = nodeHandle.subscribe("/tag_detections", 1000, tagDetectionsCallback);
+    ros::Subscriber sub = nodeHandle.subscribe("/tag_detections", 1000, tagDetectionsCallback);
     
 
 
@@ -250,10 +254,11 @@ int main(int argc, char **argv)
     ros::Publisher pub_y_c = nodeHandle.advertise<std_msgs::Float64>("y_actual", 1000);
     std_msgs::Float64 msg_yc;
 
+    Eigen::Vector3d temp ;
     
 
     geometry_msgs::TransformStamped tag_base_T; 
-    bool detection = true;
+    
     bool reach_goal = false;
     while (ros::ok())
     {
@@ -273,16 +278,15 @@ int main(int argc, char **argv)
             
             // ROS_INFO("Transformation from %s to %s: ", parent_frame.c_str(), child_frame.c_str());
             // ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
-            // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
-            detection = true;
             
-        } catch (tf2::ConnectivityException &ex) {
-            // ROS_ERROR("TF Exception: %s", ex.what());
-            detection = false;
-            ROS_INFO("detection: %d ", detection);
+            // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+
+            
+            
+        } catch (tf2::LookupException &ex) {
+            ROS_ERROR("TF Exception: %s", ex.what());
+            // ROS_INFO("detection: %d ", detection);
         }
-
-
 
 
         auto tag_base_p = tag_base_T.transform.translation;
@@ -321,6 +325,10 @@ int main(int argc, char **argv)
         // ROS_INFO("Translation: x=%f, y=%f, z=%f", tag_base_T.transform.translation.x, tag_base_T.transform.translation.y, tag_base_T.transform.translation.z);
         // ROS_INFO("Rotation: w=%f, x=%f, y=%f, z=%f", tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
 
+        tf::Quaternion q_R(tag_base_T.transform.rotation.w, tag_base_T.transform.rotation.x, tag_base_T.transform.rotation.y, tag_base_T.transform.rotation.z);
+
+
+
         double e = sqrt(x_e + y_e);
         Eigen::Vector6d E;
         double K = 0.6;
@@ -335,20 +343,18 @@ int main(int argc, char **argv)
 
         Eigen::Vector6d E_Zero;
         E_Zero.setZero();
-        // std::cout << "E_x" << std::endl << tag_base_T.transform.translation.x << std::endl;
-        // std::cout << "E_y" << std::endl << tag_base_T.transform.translation.y << std::endl;
-        // std::cout << "e" << std::endl << e << std::endl;
-        if (e >= 1.6 && detection){
-            car_cartesian->setVelocityReference(E);
 
-            // std::cout << "e : " << e << std::endl;
+        if (tagDetected && e >= 1){
+            car_cartesian->setVelocityReference(E);
+        } else{
+            car_cartesian->setVelocityReference(E_Zero);
         }
         
-        if (e < 1.6 || !detection)
-        {
-            car_cartesian->setVelocityReference(E_Zero);
-            // std::cout << "e < 0.6 || !detection" << std::endl;
-        }
+        // else 
+        // {
+        //     car_cartesian->setVelocityReference(E_Zero);
+        // }
+        
         
             // std::cout << "Motion started!" << std::endl;
         solver->update(time, dt);
