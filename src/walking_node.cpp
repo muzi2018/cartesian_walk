@@ -203,14 +203,14 @@ int main(int argc, char **argv)
             {                
                 
                 car_cartesian->setVelocityReference(E);
-                car_cartesian->setVelocityLimits(-0.05, 0.05);
+                // car_cartesian->setVelocityLimits(-0.05, 0.05);
             }
 
             if (abs(x_e) < 1 )
             {
                 reach_goal = true;
                 car_cartesian->setVelocityReference(E_Zero);
-                car_cartesian->setVelocityLimits(-0.05, 0.05);
+                // car_cartesian->setVelocityLimits(-0.05, 0.05);
             }else{
                 reach_goal = false;
             }
@@ -218,7 +218,7 @@ int main(int argc, char **argv)
         }
         if (!tagDetected){
             car_cartesian->setVelocityReference(E_Zero);
-            car_cartesian->setVelocityLimits(-0.05, 0.05);
+            // car_cartesian->setVelocityLimits(-0.05, 0.05);
         } 
 
         /**
