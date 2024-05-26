@@ -14,6 +14,8 @@ stack:
     - [Waist, Rolling_FL, Rolling_FR, Rolling_HL,Rolling_HR,Ankle_FL, Ankle_FR, Ankle_HR, Ankle_HL]
     - [Postural]
 
+
+
 constraints: [JointLimits, VelocityLimits]
 
 defaults:
@@ -88,7 +90,8 @@ Waist:
     base_link: *local_frame
     lambda: 0.1
     weight: 10.0
-    
+
+
 Wheel_FL:
     type: Cartesian
     distal_link: wheel_1

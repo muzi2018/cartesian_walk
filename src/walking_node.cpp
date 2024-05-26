@@ -112,6 +112,8 @@ int main(int argc, char **argv)
     auto car_task = solver->getTask("base_link");
     auto car_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(car_task);    
 
+  
+
 
     double det_shift_x = 0.5, det_shift_y = 0.5;
 
@@ -132,17 +134,22 @@ int main(int argc, char **argv)
     
 
     geometry_msgs::TransformStamped tag_base_T; 
+    geometry_msgs::TransformStamped wheelFL_base_T; 
+
+    
     double roll_e, pitch_e, yaw_e;
     Eigen::Vector6d E;
     Eigen::Vector6d E_Zero;
     E_Zero.setZero();
-    double K_x = 0.1, K_y = 0.1, K_yaw = 0.1;
+    double K_x = 0.1, K_y = 0.1, K_roll = 0.1, K_pitch = 0.1 , K_yaw = 0.1;
 
     bool reach_goal = false;
     while (ros::ok())
     {
         while (!start_walking_bool)
         {
+
+
             ros::spinOnce();
             r.sleep();
         }
@@ -210,6 +217,30 @@ int main(int argc, char **argv)
             {
                 reach_goal = true;
                 car_cartesian->setVelocityReference(E_Zero);
+
+
+                // auto wheelFL_task = solver->getTask("wheel_1");
+                // auto wheelFL_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(wheelFL_task); 
+
+                // wheelFL_base_T = tfBuffer.lookupTransform("base_link", "wheel_1", ros::Time(0));
+                // tf2::Quaternion q;
+                // q.setW(wheelFL_base_T.transform.rotation.w);
+                // q.setX(wheelFL_base_T.transform.rotation.x);
+                // q.setY(wheelFL_base_T.transform.rotation.y);
+                // q.setZ(wheelFL_base_T.transform.rotation.z);
+                // tf2::Matrix3x3 m(q);
+                // m.getRPY(roll_e, pitch_e, yaw_e);
+                // /**
+                //  * Velocity Controller
+                // */
+                // E[0] = 0;
+                // E[1] = 0;
+                // E[2] = 0;
+                // E[3] = K_yaw * yaw_e;
+                // E[4] = K_yaw * yaw_e;
+                // E[5] = K_yaw * yaw_e;
+                // wheelFL_cartesian->setVelocityReference(E);
+
                 // car_cartesian->setVelocityLimits(-0.05, 0.05);
             }else{
                 reach_goal = false;
@@ -238,6 +269,8 @@ int main(int argc, char **argv)
         robot->setPositionReference(q.tail(robot->getJointNum()));
         robot->setVelocityReference(qdot.tail(robot->getJointNum()));
         robot->move();
+
+        
 
         time += dt;
         rspub.publishTransforms(ros::Time::now(), "");

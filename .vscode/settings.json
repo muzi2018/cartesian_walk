@@ -86,6 +86,7 @@
         "bit": "cpp",
         "core": "cpp",
         "csignal": "cpp",
-        "*.msg": "cpp"
+        "*.msg": "cpp",
+        "valarray": "cpp"
     }
 }
