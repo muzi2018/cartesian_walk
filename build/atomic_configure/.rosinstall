@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/wang/forest_ws/src/cartesian_walk/build/devel/setup.sh

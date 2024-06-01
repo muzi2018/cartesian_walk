@@ -60,6 +60,11 @@ int main(int argc, char **argv)
     // Initialize ros node
     ros::init(argc, argv, robotName);
     ros::NodeHandle nodeHandle("");
+    // opendrawer
+    // opendoor
+    ros::ServiceClient client = nodeHandle.serviceClient<std_srvs::Empty>("opendoor");
+    std_srvs::Empty srv;
+
 
 
     // Create a Buffer and a TransformListener
@@ -75,11 +80,24 @@ int main(int argc, char **argv)
     // initialize to a homing configuration
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
+    std::cout << "Homing configuration: " << std::endl << qhome.size() << std::endl;
+    std::cout << "qhome = " << qhome << std::endl;
+
     model->setJointPosition(qhome);
     model->update();
     XBot::Cartesian::Utils::RobotStatePublisher rspub (model);
 
-    
+    robot->setControlMode(
+        {
+            {"j_wheel_1", XBot::ControlMode::Velocity()},
+            {"j_wheel_2", XBot::ControlMode::Velocity()},
+            {"j_wheel_3", XBot::ControlMode::Velocity()},
+            {"j_wheel_4", XBot::ControlMode::Velocity()}
+        }
+    );
+
+    int homing_num = 100;
+    bool home_flag = false;
 
     // before constructing the problem description, let us build a
     // context object which stores some information, such as
@@ -148,8 +166,7 @@ int main(int argc, char **argv)
     {
         while (!start_walking_bool)
         {
-
-
+            std::cout << "start_walking_bool: " << start_walking_bool << std::endl;
             ros::spinOnce();
             r.sleep();
         }
@@ -163,13 +180,14 @@ int main(int argc, char **argv)
 
         if (tagDetected)
         {
-            // std::cout << "tagDetected = " << tagDetected << std::endl;
+            std::cout << "tagDetected = " << tagDetected << std::endl;
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
             /**
              * Error Calculate
             */
             double x_e = tag_base_T.transform.translation.x;
-            double y_e = tag_base_T.transform.translation.y - 0.3;
+            double y_e = tag_base_T.transform.translation.y ;
+            std::cout << "y_e = " << y_e <<  std::endl;
             double z_e = tag_base_T.transform.translation.z;
 
             double x_ee = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
@@ -177,13 +195,13 @@ int main(int argc, char **argv)
             double z_ee = tag_base_T.transform.translation.z * tag_base_T.transform.translation.z;
             double e = sqrt(x_ee + y_ee);
 
-            tf2::Quaternion q;
-            q.setW(tag_base_T.transform.rotation.w);
-            q.setX(tag_base_T.transform.rotation.x);
-            q.setY(tag_base_T.transform.rotation.y);
-            q.setZ(tag_base_T.transform.rotation.z);
+            tf2::Quaternion q_;
+            q_.setW(tag_base_T.transform.rotation.w);
+            q_.setX(tag_base_T.transform.rotation.x);
+            q_.setY(tag_base_T.transform.rotation.y);
+            q_.setZ(tag_base_T.transform.rotation.z);
             
-            tf2::Matrix3x3 m(q);
+            tf2::Matrix3x3 m(q_);
             m.getRPY(roll_e, pitch_e, yaw_e);
             yaw_e = yaw_e + 1.6;
             /**
@@ -201,24 +219,50 @@ int main(int argc, char **argv)
             // E = K * E * e;
 
 
-            std::cout << "tag_base_T.transform.translation.x = " << tag_base_T.transform.translation.x << std::endl;
-            std::cout << "tag_base_T.transform.translation.y = " << tag_base_T.transform.translation.y << std::endl;
-            std::cout << "tag_base_T.transform.translation.z = " << tag_base_T.transform.translation.z << std::endl;
-            std::cout << "yaw = " << yaw_e << std::endl;
+            // std::cout << "tag_base_T.transform.translation.x = " << tag_base_T.transform.translation.x << std::endl;
+            // std::cout << "tag_base_T.transform.translation.y = " << tag_base_T.transform.translation.y << std::endl;
+            // std::cout << "tag_base_T.transform.translation.z = " << tag_base_T.transform.translation.z << std::endl;
+            // std::cout << "yaw = " << yaw_e << std::endl;
 
-            if ((abs(x_e) > 1 || abs(y_e) > 0.05 || abs(yaw_e) > 0.1) && !reach_goal)
+            if ((abs(x_e) > 0.7 || abs(y_e) > 0.05 || abs(yaw_e) > 0.1) && !reach_goal)
             {                
-                
                 car_cartesian->setVelocityReference(E);
+                std::cout << "x_e: " << x_e << std::endl;
                 // car_cartesian->setVelocityLimits(-0.05, 0.05);
             }
 
-            if (abs(x_e) < 1 )
+            if (abs(x_e) < 0.3 )
             {
                 reach_goal = true;
                 car_cartesian->setVelocityReference(E_Zero);
+                Eigen::VectorXd delta_q = q - qhome;
+                // std::cout << "q = " << std::endl << q;
+                
+                delta_q = delta_q/homing_num;
+                // if ( homing_num >= 0 )
+                // {
+                //     for (size_t j = 0; j < homing_num; j++)
+                //     {
+                //         // std::cout << "---- setPositionReference ----" << std::endl;
+                //         robot->setPositionReference((q - j*delta_q).tail(robot->getJointNum()));
+                //         robot->move();
+                //         homing_num--;
+                //         ros::spinOnce();
+                //         r.sleep();
+                //     }
+                // }
+                
 
-
+                if (client.call(srv)) {
+                    ROS_INFO("Service call successful");
+                    while (1)
+                    {
+                        ros::spinOnce();
+                        r.sleep();
+                    }
+                } else {
+                    ROS_ERROR("Failed to call service");
+                }
                 // auto wheelFL_task = solver->getTask("wheel_1");
                 // auto wheelFL_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(wheelFL_task); 
 
@@ -241,7 +285,7 @@ int main(int argc, char **argv)
                 // E[5] = K_yaw * yaw_e;
                 // wheelFL_cartesian->setVelocityReference(E);
 
-                // car_cartesian->setVelocityLimits(-0.05, 0.05);
+                car_cartesian->setVelocityLimits(-0.1, 0.1);
             }else{
                 reach_goal = false;
             }

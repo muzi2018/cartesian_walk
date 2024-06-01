@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: cartesian_walk
+Description: Description of cartesian_walk
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp message_runtime
