@@ -21,8 +21,6 @@
 #include <std_srvs/Empty.h>
 #include <xbot_msgs/JointCommand.h>
 using namespace XBot::Cartesian;
-
-
 bool start_walking_bool = false;
 bool tagDetected = false;
 bool start_walking(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
@@ -64,7 +62,29 @@ void SearchingTag(ros::NodeHandle nodeHandle){
         jointCmdPublisher_.publish(joint_command);
 }
 
+void TurnToTag(Eigen::Vector6d E, int &searching_num, double K_yaw, XBot::Cartesian::CartesianTask* car_cartesian){
+        E[0] = 0;
+        E[1] = 0;
+        E[2] = 0;
+        E[3] = 0;
+        E[4] = 0;
+        double yaw_e = -3.14 * searching_num/200;
+        E[5] = K_yaw * yaw_e;
+        car_cartesian->setVelocityReference(E); 
+                std::cout << "searching_num = " << searching_num << std::endl;
 
+        searching_num ++ ;
+        if (searching_num == 100)
+        {
+            searching_num = 0;
+        }
+}
+
+
+
+// Turn_yaw(E, int &tun_num, double K_yaw, XBot::Cartesian::CartesianTask* car_cartesian){
+
+// }
 
 
 int main(int argc, char **argv)
@@ -110,7 +130,7 @@ int main(int argc, char **argv)
     );
 
     int homing_num = 100;
-    int searching_num = 0; bool search_flag = false;
+    int searching_num = 0; bool search_flag = false, turn_num = 20;
     bool home_flag = false;
 
     // before constructing the problem description, let us build a
@@ -208,7 +228,7 @@ int main(int argc, char **argv)
             
             tf2::Matrix3x3 m(q_);
             m.getRPY(roll_e, pitch_e, yaw_e);
-            yaw_e = yaw_e + 1.6;
+            yaw_e = yaw_e + 1.6 - 0.5;
             /**
              * Velocity Controller
             */
@@ -229,10 +249,18 @@ int main(int argc, char **argv)
             // std::cout << "tag_base_T.transform.translation.z = " << tag_base_T.transform.translation.z << std::endl;
             // std::cout << "yaw = " << yaw_e << std::endl;
 
-            if ((abs(x_e) > 0.7 || abs(y_e) > 0.05 || abs(yaw_e) > 0.1) && !reach_goal)
+            if ((abs(x_e) > 0.7 || abs(y_e) > 0.1 || abs(yaw_e) > 0.1 ) && !reach_goal)
             {                
-                car_cartesian->setVelocityReference(E);
+                std::cout << "x_e = " << x_e << std::endl;
+                std::cout << "y_e = " << y_e << std::endl;
+                std::cout << "yaw_e = " << yaw_e << std::endl;
 
+                if (search_flag)
+                {
+
+                }
+                car_cartesian->setVelocityReference(E);
+                
             }
             }else{
                 reach_goal = false;
@@ -240,21 +268,22 @@ int main(int argc, char **argv)
 
             
             if (!tagDetected && !search_flag){
-                std::cout << "no tag detected! " << std::endl;
-                E[0] = 0;
-                E[1] = 0;
-                E[2] = 0;
-                E[3] = 0;
-                E[4] = 0;
-
-                yaw_e = 3.14 * searching_num/100;
-                E[5] = K_yaw * yaw_e;
-                car_cartesian->setVelocityReference(E); 
-                searching_num ++ ;
-                if (searching_num == 100)
-                {
-                    searching_num = 0;
-                }
+                std::cout << "no tag" << std::endl;
+                TurnToTag(E, searching_num, K_yaw, car_cartesian.get());
+                // std::cout << "no tag detected! " << std::endl;
+                // E[0] = 0;
+                // E[1] = 0;
+                // E[2] = 0;
+                // E[3] = 0;
+                // E[4] = 0;
+                // yaw_e = -3.14 * searching_num/100;
+                // E[5] = K_yaw * yaw_e;
+                // car_cartesian->setVelocityReference(E); 
+                // searching_num ++ ;
+                // if (searching_num == 100)
+                // {
+                //     searching_num = 0;
+                // }
             } 
             solver->update(time, dt);
             model->getJointPosition(q);
