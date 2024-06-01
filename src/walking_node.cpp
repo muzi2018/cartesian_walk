@@ -20,7 +20,6 @@
 #include <Eigen/Dense>
 #include <std_srvs/Empty.h>
 #include <xbot_msgs/JointCommand.h>
-
 using namespace XBot::Cartesian;
 
 
@@ -50,7 +49,20 @@ void tagDetectionsCallback(const apriltag_ros::AprilTagDetectionArray::ConstPtr&
 
 }
 
-
+void SearchingTag(ros::NodeHandle nodeHandle){
+        std::vector<std::string> joint_names{
+                                            "torso_yaw",
+                                            };
+        std::vector<float> joint_positions (1);
+        joint_positions[0] = 0.5;
+        xbot_msgs::JointCommand joint_command;
+        ros::Publisher jointCmdPublisher_ = nodeHandle.advertise<xbot_msgs::JointCommand>("/xbotcore/command", 10);
+        joint_command.header.stamp = ros::Time::now();
+        joint_command.name = joint_names; 
+        joint_command.position = joint_positions;
+        joint_command.ctrl_mode = std::vector<uint8_t>(joint_positions.size(), 1);
+        jointCmdPublisher_.publish(joint_command);
+}
 
 
 
@@ -98,6 +110,7 @@ int main(int argc, char **argv)
     );
 
     int homing_num = 100;
+    int searching_num = 0;
     bool home_flag = false;
 
     // before constructing the problem description, let us build a
@@ -136,33 +149,23 @@ int main(int argc, char **argv)
 
     double det_shift_x = 0.5, det_shift_y = 0.5;
 
-    ros::Rate r(100);
+    ros::Rate r(10);
     ros::ServiceServer service = nodeHandle.advertiseService("start_walking", start_walking);
-
-    // // D435_head_camera_color_optical_frame
-    // // tag_0
-    // ros::Publisher pub_x_d = nodeHandle.advertise<std_msgs::Float64>("x_desire", 1000);
-    // std_msgs::Float64 msg_xd;
-    // ros::Publisher pub_x_c = nodeHandle.advertise<std_msgs::Float64>("x_actual", 1000);
-    // std_msgs::Float64 msg_xc;
-
-    // ros::Publisher pub_y_d = nodeHandle.advertise<std_msgs::Float64>("y_desire", 1000);
-    // std_msgs::Float64 msg_yd;
-    // ros::Publisher pub_y_c = nodeHandle.advertise<std_msgs::Float64>("y_actual", 1000);
-    // std_msgs::Float64 msg_yc;
-    
 
     geometry_msgs::TransformStamped tag_base_T; 
     geometry_msgs::TransformStamped wheelFL_base_T; 
-
-    
     double roll_e, pitch_e, yaw_e;
     Eigen::Vector6d E;
     Eigen::Vector6d E_Zero;
     E_Zero.setZero();
     double K_x = 0.1, K_y = 0.1, K_roll = 0.1, K_pitch = 0.1 , K_yaw = 0.1;
-
     bool reach_goal = false;
+
+    int nodes_num = 100;
+    double yaw_l = -0.5;
+    double yaw_h = 0.5;
+    bool reach_yaw = false;
+
     while (ros::ok())
     {
         while (!start_walking_bool)
@@ -216,7 +219,7 @@ int main(int argc, char **argv)
             E[3] = 0;
             E[4] = 0;
             E[5] = K_yaw * yaw_e;
-            // std::cout << "yaw_error = " << E[5] << std::endl;
+            std::cout << "yaw_error = " << E[5] << std::endl;
             // E = K * E * e;
 
 
@@ -228,113 +231,54 @@ int main(int argc, char **argv)
             if ((abs(x_e) > 0.7 || abs(y_e) > 0.05 || abs(yaw_e) > 0.1) && !reach_goal)
             {                
                 car_cartesian->setVelocityReference(E);
-                std::cout << "x_e: " << x_e << std::endl;
-                // car_cartesian->setVelocityLimits(-0.05, 0.05);
+
             }
-
-            if (abs(x_e) < 0.3 )
-            {
-                reach_goal = true;
-                car_cartesian->setVelocityReference(E_Zero);
-                Eigen::VectorXd delta_q = q - qhome;
-                std::cout << "q.size = " << q.size() << std::endl;
-                Eigen::VectorXd q_zero(q.size());
-
-
-                E[0] = K_x * 0;
-                E[1] = K_y * 0;
-                E[2] = 0;
-                E[3] = 0;
-                E[4] = 0;
-                E[5] = K_yaw * 0.2;
-                car_cartesian->setVelocityReference(E);
-
-                
-                delta_q = delta_q/homing_num;
-                // if ( homing_num >= 0 )
-                // {
-                //     for (size_t j = 0; j < homing_num; j++)
-                //     {
-                //         // std::cout << "---- setPositionReference ----" << std::endl;
-                //         robot->setPositionReference((q - j*delta_q).tail(robot->getJointNum()));
-                //         robot->move();
-                //         homing_num--;
-                //         ros::spinOnce();
-                //         r.sleep();
-                //     }
-                // }
-                
-
-                if (client.call(srv)) {
-                    ROS_INFO("Service call successful");
-                    while (1)
-                    {
-                        ros::spinOnce();
-                        r.sleep();
-                    }
-                } else {
-                    ROS_ERROR("Failed to call service");
-                }
-                // auto wheelFL_task = solver->getTask("wheel_1");
-                // auto wheelFL_cartesian = std::dynamic_pointer_cast<XBot::Cartesian::CartesianTask>(wheelFL_task); 
-
-                // wheelFL_base_T = tfBuffer.lookupTransform("base_link", "wheel_1", ros::Time(0));
-                // tf2::Quaternion q;
-                // q.setW(wheelFL_base_T.transform.rotation.w);
-                // q.setX(wheelFL_base_T.transform.rotation.x);
-                // q.setY(wheelFL_base_T.transform.rotation.y);
-                // q.setZ(wheelFL_base_T.transform.rotation.z);
-                // tf2::Matrix3x3 m(q);
-                // m.getRPY(roll_e, pitch_e, yaw_e);
-                // /**
-                //  * Velocity Controller
-                // */
-                // E[0] = 0;
-                // E[1] = 0;
-                // E[2] = 0;
-                // E[3] = K_yaw * yaw_e;
-                // E[4] = K_yaw * yaw_e;
-                // E[5] = K_yaw * yaw_e;
-                // wheelFL_cartesian->setVelocityReference(E);
-
-                car_cartesian->setVelocityLimits(-0.1, 0.1);
             }else{
                 reach_goal = false;
             }
 
-        }
-        if (!tagDetected){
-            car_cartesian->setVelocityReference(E_Zero);
-            // car_cartesian->setVelocityLimits(-0.05, 0.05);
-        } 
+            
+            if (!tagDetected){
+                std::cout << "no tag detected! " << std::endl;
+                E[0] = 0;
+                E[1] = 0;
+                E[2] = 0;
+                E[3] = 0;
+                E[4] = 0;
 
-        /**
-         * Move Robot
-        */
+                yaw_e = 3.14 * searching_num/100;
+                E[5] = K_yaw * yaw_e;
+                car_cartesian->setVelocityReference(E); 
+                searching_num -- ;
+                if (searching_num == 100)
+                {
+                    searching_num = 0;
+                }
+                
 
-        solver->update(time, dt);
-        model->getJointPosition(q);
-        model->getJointVelocity(qdot);
-        model->getJointAcceleration(qddot);
-        q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
-        qdot += dt * qddot;
-        model->setJointPosition(q);
-        model->setJointVelocity(qdot);
-        model->update();
-
-        robot->setPositionReference(q.tail(robot->getJointNum()));
-        robot->setVelocityReference(qdot.tail(robot->getJointNum()));
-        robot->move();
-
-        
-
-        time += dt;
-        rspub.publishTransforms(ros::Time::now(), "");
-        ros::spinOnce();
-        r.sleep();
-        
-    }
+            } 
+            solver->update(time, dt);
+            model->getJointPosition(q);
+            model->getJointVelocity(qdot);
+            model->getJointAcceleration(qddot);
+            q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
+            qdot += dt * qddot;
+            model->setJointPosition(q);
+            model->setJointVelocity(qdot);
+            model->update();
+            robot->setPositionReference(q.tail(robot->getJointNum()));
+            robot->setVelocityReference(qdot.tail(robot->getJointNum()));
+            robot->move();
+            time += dt;
+            rspub.publishTransforms(ros::Time::now(), "");
+            /**
+             * Move Robot
+            */
+            ros::spinOnce();
+            r.sleep();
+        }        
 }
+
 
 
 
