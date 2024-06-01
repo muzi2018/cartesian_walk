@@ -110,7 +110,7 @@ int main(int argc, char **argv)
     );
 
     int homing_num = 100;
-    int searching_num = 0;
+    int searching_num = 0; bool search_flag = false;
     bool home_flag = false;
 
     // before constructing the problem description, let us build a
@@ -185,6 +185,7 @@ int main(int argc, char **argv)
         if (tagDetected)
         {
             // std::cout << "tagDetected = " << tagDetected << std::endl;
+            search_flag = true;
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
             /**
              * Error Calculate
@@ -238,7 +239,7 @@ int main(int argc, char **argv)
             }
 
             
-            if (!tagDetected){
+            if (!tagDetected && !search_flag){
                 std::cout << "no tag detected! " << std::endl;
                 E[0] = 0;
                 E[1] = 0;
@@ -249,13 +250,11 @@ int main(int argc, char **argv)
                 yaw_e = 3.14 * searching_num/100;
                 E[5] = K_yaw * yaw_e;
                 car_cartesian->setVelocityReference(E); 
-                searching_num -- ;
+                searching_num ++ ;
                 if (searching_num == 100)
                 {
                     searching_num = 0;
                 }
-                
-
             } 
             solver->update(time, dt);
             model->getJointPosition(q);
