@@ -19,6 +19,7 @@
 #include <tf/transform_datatypes.h>
 #include <Eigen/Dense>
 #include <std_srvs/Empty.h>
+#include <xbot_msgs/JointCommand.h>
 
 using namespace XBot::Cartesian;
 
@@ -166,7 +167,7 @@ int main(int argc, char **argv)
     {
         while (!start_walking_bool)
         {
-            std::cout << "start_walking_bool: " << start_walking_bool << std::endl;
+            // std::cout << "start_walking_bool: " << start_walking_bool << std::endl;
             ros::spinOnce();
             r.sleep();
         }
@@ -180,14 +181,14 @@ int main(int argc, char **argv)
 
         if (tagDetected)
         {
-            std::cout << "tagDetected = " << tagDetected << std::endl;
+            // std::cout << "tagDetected = " << tagDetected << std::endl;
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
             /**
              * Error Calculate
             */
             double x_e = tag_base_T.transform.translation.x;
             double y_e = tag_base_T.transform.translation.y ;
-            std::cout << "y_e = " << y_e <<  std::endl;
+            // std::cout << "y_e = " << y_e <<  std::endl;
             double z_e = tag_base_T.transform.translation.z;
 
             double x_ee = tag_base_T.transform.translation.x * tag_base_T.transform.translation.x;
@@ -236,7 +237,18 @@ int main(int argc, char **argv)
                 reach_goal = true;
                 car_cartesian->setVelocityReference(E_Zero);
                 Eigen::VectorXd delta_q = q - qhome;
-                // std::cout << "q = " << std::endl << q;
+                std::cout << "q.size = " << q.size() << std::endl;
+                Eigen::VectorXd q_zero(q.size());
+
+
+                E[0] = K_x * 0;
+                E[1] = K_y * 0;
+                E[2] = 0;
+                E[3] = 0;
+                E[4] = 0;
+                E[5] = K_yaw * 0.2;
+                car_cartesian->setVelocityReference(E);
+
                 
                 delta_q = delta_q/homing_num;
                 // if ( homing_num >= 0 )

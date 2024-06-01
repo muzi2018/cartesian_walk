@@ -2,7 +2,7 @@
 
   <!-- Load the URDF/SRDF into the ROS Parameter Server -->
     <!-- visualization config -->
-  <arg name="rviz"               default="false" />
+  <arg name="rviz"               default="true" />
 
 
   <!-- <include file="$(find centauro_gazebo)/launch/centauro_world.launch"/> -->
