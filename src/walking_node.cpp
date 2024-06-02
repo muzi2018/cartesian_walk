@@ -68,7 +68,7 @@ void TurnToTag(Eigen::Vector6d E, int &searching_num, double K_yaw, XBot::Cartes
         E[2] = 0;
         E[3] = 0;
         E[4] = 0;
-        double yaw_e = -3.14 * searching_num/200;
+        double yaw_e = 3.14 * searching_num/200;
         E[5] = K_yaw * yaw_e;
         car_cartesian->setVelocityReference(E); 
                 std::cout << "searching_num = " << searching_num << std::endl;
@@ -182,6 +182,8 @@ int main(int argc, char **argv)
     bool reach_goal = false;
 
     int nodes_num = 100;
+
+    int off_num = 100; // off num to start tracking
     double yaw_l = -0.5;
     double yaw_h = 0.5;
     bool reach_yaw = false;
@@ -201,10 +203,23 @@ int main(int argc, char **argv)
         */
         std::string parent_frame = "base_link";
         std::string child_frame = "tag_0";
+        if (tagDetected && off_num ){
+            E[0] = 0;
+            E[1] = 0;
+            E[2] = 0;
+            E[3] = 0;
+            E[4] = 0;
+            double yaw_e = 3.14 * (100 - off_num)/200;
+            E[5] = K_yaw * yaw_e;
+            car_cartesian->setVelocityReference(E); 
+            off_num -- ;
+            std::cout << "tagDetected but should turn it to tag off num = " << off_num << std::endl;
+        }
 
-        if (tagDetected)
+        if (tagDetected && !off_num )
         {
-            // std::cout << "tagDetected = " << tagDetected << std::endl;
+
+            std::cout << "tagDetected = " << tagDetected << std::endl;
             search_flag = true;
             tag_base_T = tfBuffer.lookupTransform(parent_frame, child_frame, ros::Time(0));
             /**
@@ -239,8 +254,8 @@ int main(int argc, char **argv)
             E[2] = 0;
             E[3] = 0;
             E[4] = 0;
-            E[5] = K_yaw * yaw_e;
-            std::cout << "yaw_error = " << E[5] << std::endl;
+            E[5] = K_yaw * 0;
+            // std::cout << "yaw_error = " << E[5] << std::endl;
             // E = K * E * e;
 
 
@@ -249,11 +264,11 @@ int main(int argc, char **argv)
             // std::cout << "tag_base_T.transform.translation.z = " << tag_base_T.transform.translation.z << std::endl;
             // std::cout << "yaw = " << yaw_e << std::endl;
 
-            if ((abs(x_e) > 0.7 || abs(y_e) > 0.1 || abs(yaw_e) > 0.1 ) && !reach_goal)
+            if ((abs(x_e) > 1 || abs(y_e) > 0.4 ) && !reach_goal)
             {                
                 std::cout << "x_e = " << x_e << std::endl;
                 std::cout << "y_e = " << y_e << std::endl;
-                std::cout << "yaw_e = " << yaw_e << std::endl;
+                // std::cout << "yaw_e = " << yaw_e << std::endl;
 
                 if (search_flag)
                 {
