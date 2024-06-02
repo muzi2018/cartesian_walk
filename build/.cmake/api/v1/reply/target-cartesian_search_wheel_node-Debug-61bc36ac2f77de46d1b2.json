@@ -2,7 +2,7 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "devel/lib/cartesian_walk/cartesian_walk_node"
+			"path" : "devel/lib/cartesian_search_wheel/cartesian_search_wheel_node"
 		}
 	],
 	"backtrace" : 1,
@@ -167,14 +167,14 @@
 				},
 				{
 					"backtrace" : 18,
-					"define" : "ROS_PACKAGE_NAME=\"cartesian_walk\""
+					"define" : "ROS_PACKAGE_NAME=\"cartesian_search_wheel\""
 				}
 			],
 			"includes" : 
 			[
 				{
 					"backtrace" : 19,
-					"path" : "/home/wang/forest_ws/src/cartesian_walk/include"
+					"path" : "/home/wang/forest_ws/src/cartesian_search_wheel/include"
 				},
 				{
 					"backtrace" : 19,
@@ -222,14 +222,14 @@
 			]
 		}
 	],
-	"id" : "cartesian_walk_node::@6890427a1f51a3e7e1df",
+	"id" : "cartesian_search_wheel_node::@6890427a1f51a3e7e1df",
 	"install" : 
 	{
 		"destinations" : 
 		[
 			{
 				"backtrace" : 3,
-				"path" : "lib/cartesian_walk"
+				"path" : "lib/cartesian_search_wheel"
 			}
 		],
 		"prefix" : 
@@ -822,8 +822,8 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "cartesian_walk_node",
-	"nameOnDisk" : "cartesian_walk_node",
+	"name" : "cartesian_search_wheel_node",
+	"nameOnDisk" : "cartesian_search_wheel_node",
 	"paths" : 
 	{
 		"build" : ".",

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>cartesian_walk</name>
+  <name>cartesian_search_wheel</name>
   <version>0.0.0</version>
-  <description>The cartesian_walk package</description>
+  <description>The cartesian_search_wheel package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->

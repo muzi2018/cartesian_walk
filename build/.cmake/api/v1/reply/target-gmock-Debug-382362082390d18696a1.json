@@ -139,7 +139,7 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/home/wang/forest_ws/src/cartesian_walk/build/gtest/lib",
+				"fragment" : "-Wl,-rpath,/home/wang/forest_ws/src/cartesian_search_wheel/build/gtest/lib",
 				"role" : "libraries"
 			},
 			{

@@ -13,18 +13,18 @@
   <group if="$(arg rviz)">
     <param name="robot_description" textfile="$(find centauro_urdf)/urdf/centauro.urdf"/>
     <param name="robot_description_semantic" textfile="$(find centauro_srdf)/srdf/centauro.srdf"/>
-    <arg name="rvizconfig" default="/home/wang/forest_ws/src/cartesian_walk/rviz/rviz.rviz" />
-    <!-- <arg name="rvizconfig" default="$(find cartesian_walk)/rviz/rviz.rviz" /> -->
+    <arg name="rvizconfig" default="/home/wang/forest_ws/src/cartesian_search_wheel/rviz/rviz.rviz" />
+    <!-- <arg name="rvizconfig" default="$(find cartesian_search_wheel)/rviz/rviz.rviz" /> -->
 
     <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rvizconfig)" output="screen" />
   </group>
 
 
   <param name="problem_description"
-          textfile="$(find cartesian_walk)/config/cartesio_stack.yaml"/> 
+          textfile="$(find cartesian_search_wheel)/config/cartesio_stack.yaml"/> 
 
 
-  <node pkg="cartesian_walk" name="cartesian_walk" type="cartesian_walk_node" output="screen"/>
+  <node pkg="cartesian_search_wheel" name="cartesian_search_wheel" type="cartesian_search_wheel_node" output="screen"/>
 
 
 </launch>

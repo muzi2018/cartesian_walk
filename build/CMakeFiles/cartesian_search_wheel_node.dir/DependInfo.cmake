@@ -4,7 +4,7 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/wang/forest_ws/src/cartesian_walk/src/walking_node.cpp" "/home/wang/forest_ws/src/cartesian_walk/build/CMakeFiles/cartesian_walk_node.dir/src/walking_node.cpp.o"
+  "/home/wang/forest_ws/src/cartesian_search_wheel/src/walking_node.cpp" "/home/wang/forest_ws/src/cartesian_search_wheel/build/CMakeFiles/cartesian_search_wheel_node.dir/src/walking_node.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 
@@ -13,7 +13,7 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
   "FMT_HEADER_ONLY=1"
   "ROSCONSOLE_BACKEND_LOG4CXX"
   "ROS_BUILD_SHARED_LIBS=1"
-  "ROS_PACKAGE_NAME=\"cartesian_walk\""
+  "ROS_PACKAGE_NAME=\"cartesian_search_wheel\""
   )
 
 # The include file search paths:

@@ -21,11 +21,11 @@
 #include <std_srvs/Empty.h>
 #include <xbot_msgs/JointCommand.h>
 using namespace XBot::Cartesian;
-bool start_walking_bool = false;
+bool start_searching_bool = false;
 bool tagDetected = false;
-bool start_walking(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
+bool start_searching(std_srvs::Empty::Request& req, std_srvs::Empty::Response& res)
 {
-    start_walking_bool = !start_walking_bool;
+    start_searching_bool = !start_searching_bool;
     return true;
 };
 
@@ -120,6 +120,8 @@ int main(int argc, char **argv)
     model->update();
     XBot::Cartesian::Utils::RobotStatePublisher rspub (model);
 
+    std::cout << "pppp" << std::endl;
+
     robot->setControlMode(
         {
             {"j_wheel_1", XBot::ControlMode::Velocity()},
@@ -170,7 +172,7 @@ int main(int argc, char **argv)
     double det_shift_x = 0.5, det_shift_y = 0.5;
 
     ros::Rate r(10);
-    ros::ServiceServer service = nodeHandle.advertiseService("start_walking", start_walking);
+    ros::ServiceServer service = nodeHandle.advertiseService("start_searching", start_searching);
 
     geometry_msgs::TransformStamped tag_base_T; 
     geometry_msgs::TransformStamped wheelFL_base_T; 
@@ -190,9 +192,9 @@ int main(int argc, char **argv)
 
     while (ros::ok())
     {
-        while (!start_walking_bool)
+        while (!start_searching_bool)
         {
-            // std::cout << "start_walking_bool: " << start_walking_bool << std::endl;
+            // std::cout << "start_searching_bool: " << start_searching_bool << std::endl;
             ros::spinOnce();
             r.sleep();
         }
@@ -243,7 +245,7 @@ int main(int argc, char **argv)
             
             tf2::Matrix3x3 m(q_);
             m.getRPY(roll_e, pitch_e, yaw_e);
-            yaw_e = yaw_e + 1.6 - 0.5;
+            yaw_e = yaw_e + 1.6;
             /**
              * Velocity Controller
             */

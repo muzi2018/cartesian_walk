@@ -1,7 +1,7 @@
 prefix=/usr/local
 
-Name: cartesian_walk
-Description: Description of cartesian_walk
+Name: cartesian_search_wheel
+Description: Description of cartesian_search_wheel
 Version: 0.0.0
 Cflags: 
 Libs: -L${prefix}/lib 
