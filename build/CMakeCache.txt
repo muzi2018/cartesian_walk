@@ -388,6 +388,12 @@ bondcpp_DIR:PATH=/opt/ros/noetic/share/bondcpp/cmake
 cartesian_interface_DIR:PATH=/home/wang/forest_ws/install/lib/cmake/cartesian_interface
 
 //Value Computed by CMake
+cartesian_search_leg_BINARY_DIR:STATIC=/home/wang/forest_ws/src/cartesian_search_wheel/build
+
+//Value Computed by CMake
+cartesian_search_leg_SOURCE_DIR:STATIC=/home/wang/forest_ws/src/cartesian_search_wheel
+
+//Value Computed by CMake
 cartesian_search_wheel_BINARY_DIR:STATIC=/home/wang/forest_ws/src/cartesian_search_wheel/build
 
 //Value Computed by CMake

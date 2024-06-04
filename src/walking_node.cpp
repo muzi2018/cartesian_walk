@@ -89,6 +89,8 @@ void TurnToTag(Eigen::Vector6d E, int &searching_num, double K_yaw, XBot::Cartes
 
 int main(int argc, char **argv)
 {
+    // std::cout << "robot->arm(1).getBaseLinkName() = " << robot->arm(1).getBaseLinkName() << std::endl;
+    std::cout << "wheel move move move = " << std::endl;
     const std::string robotName = "centauro";
     // Initialize ros node
     ros::init(argc, argv, robotName);
@@ -120,7 +122,6 @@ int main(int argc, char **argv)
     model->update();
     XBot::Cartesian::Utils::RobotStatePublisher rspub (model);
 
-    std::cout << "pppp" << std::endl;
 
     robot->setControlMode(
         {
@@ -190,11 +191,20 @@ int main(int argc, char **argv)
     double yaw_h = 0.5;
     bool reach_yaw = false;
 
+    // std::cout << "robot->arm(1).getBaseLinkName() = " << robot->arm(0).getBaseLinkName() << std::endl;
+    // robot->getChainMap
+    std::cout << "motion chain names: " << std::endl << std::endl;
+    for (size_t i = 0; i < robot->getChainNames().size(); i++)
+    {
+        std::cout << "Chain [" << i <<"] = " << robot->getChainNames()[i] << std::endl;
+    }
+    
+
     while (ros::ok())
     {
         while (!start_searching_bool)
         {
-            // std::cout << "start_searching_bool: " << start_searching_bool << std::endl;
+            std::cout << "start_searching_bool: " << start_searching_bool << std::endl;
             ros::spinOnce();
             r.sleep();
         }

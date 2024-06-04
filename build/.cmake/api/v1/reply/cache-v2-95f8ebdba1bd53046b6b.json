@@ -2150,6 +2150,30 @@
 			"value" : "/home/wang/forest_ws/install/lib/cmake/cartesian_interface"
 		},
 		{
+			"name" : "cartesian_search_leg_BINARY_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "/home/wang/forest_ws/src/cartesian_search_wheel/build"
+		},
+		{
+			"name" : "cartesian_search_leg_SOURCE_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "Value Computed by CMake"
+				}
+			],
+			"type" : "STATIC",
+			"value" : "/home/wang/forest_ws/src/cartesian_search_wheel"
+		},
+		{
 			"name" : "cartesian_search_wheel_BINARY_DIR",
 			"properties" : 
 			[
