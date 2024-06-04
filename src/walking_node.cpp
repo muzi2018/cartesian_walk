@@ -62,6 +62,8 @@ int main(int argc, char **argv)
     // and we can make the model class
     auto model = XBot::ModelInterface::getModel(cfg);
     auto robot = XBot::RobotInterface::getRobot(cfg);
+    
+    // the "arms" group inside the SRDF
     // initialize to a homing configuration
     Eigen::VectorXd qhome;
     model->getRobotState("home", qhome);
@@ -208,10 +210,11 @@ int main(int argc, char **argv)
     // D435_head_camera_color_optical_frame
     // tag_0
 
-    while (ros::ok())
+    while (!ros::ok())
     {
         while (!start_walking_bool)
         {
+            std::cout << "waiting for start walking" << std::endl;
             ros::spinOnce();
             r.sleep();
         }
@@ -645,6 +648,7 @@ int main(int argc, char **argv)
             solver->update(time, dt);
             model->getJointPosition(q);
             model->getJointVelocity(qdot);
+            std::cout << "qdot.size() = " << qdot.size() << std::endl;
             model->getJointAcceleration(qddot);
             q += dt * qdot + 0.5 * std::pow(dt, 2) * qddot;
             qdot += dt * qddot;
@@ -654,7 +658,7 @@ int main(int argc, char **argv)
 
             robot->setPositionReference(q.tail(robot->getJointNum()));
             robot->move();
-
+            
             time += dt;
 
 

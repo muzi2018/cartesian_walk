@@ -7,6 +7,7 @@
       },
       "includePath": [
         "/home/wang/forest/install/include/**",
+        "/opt/xbot/**",
         "/opt/xbot/include/**",
         "/opt/ros/noetic/include/**",
         "/home/wang/forest/ros_src/iit-dagana-ros-pkg/dagana_gazebo/include/**",

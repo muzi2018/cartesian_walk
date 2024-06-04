@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/wang/forest_ws/src/cartesian_search_leg/build/devel/setup.sh

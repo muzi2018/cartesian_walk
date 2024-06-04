@@ -1,0 +1,8 @@
+prefix=/home/wang/forest_ws/src/cartesian_search_leg/build/devel
+
+Name: cartesian_search_leg
+Description: Description of cartesian_search_leg
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: roscpp
